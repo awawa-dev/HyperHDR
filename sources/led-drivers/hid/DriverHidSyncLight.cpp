@@ -24,7 +24,7 @@ bool DriverHidSyncLight::init (QJsonObject deviceConfig)
 		return false;
 	}
 
-	_brightness = static_cast<quint8> (
+	_brightness = static_cast<uint8_t> (
 			qBound (0, deviceConfig["brightness"].toInt (255), 255));
 	_totalLedCount = qBound (1, static_cast<int> (_ledCount), static_cast<int> (maximum_led_count));
 	_controllerLedCount = qBound (
@@ -131,18 +131,18 @@ int DriverHidSyncLight::writeFiniteColors (
 }
 
 
-quint8 DriverHidSyncLight::checksum (std::span<const uint8_t> data)
+uint8_t DriverHidSyncLight::checksum (std::span<const uint8_t> data)
 {
-	return static_cast<quint8> (
+	return static_cast<uint8_t> (
 			std::reduce (data.begin (), data.end (), uint32_t {0}));
 }
 
 
 bool DriverHidSyncLight::buildRbFrame (
 		HidReport& report,
-		quint8 action,
+		uint8_t action,
 		std::span<const uint8_t> payload,
-		quint8 id)
+		uint8_t id)
 {
 	const size_t totalLength = rb_overhead + payload.size ();
 	if (totalLength > report_size) {
@@ -170,7 +170,7 @@ std::vector<uint8_t> DriverHidSyncLight::buildScFrame (
 		std::span<const ColorRgb> ledValues,
 		int totalLedCount,
 		int controllerLedCount,
-		quint8 id)
+		uint8_t id)
 {
 	const int inputLedCount = qMin (
 			qBound (1, totalLedCount, static_cast<int> (maximum_led_count)),
@@ -212,9 +212,9 @@ std::vector<uint8_t> DriverHidSyncLight::buildScFrame (
 
 		const size_t offset = static_cast<size_t> (
 				sc_header_size + segment * sc_record_size);
-		quint8 start = static_cast<quint8> (deviceStart);
+		uint8_t start = static_cast<uint8_t> (deviceStart);
 		if (segment == 0) {
-			start = static_cast<quint8> (start | 0x80);
+			start = static_cast<uint8_t> (start | 0x80);
 		}
 
 		frame[offset + 0] = start;
@@ -234,10 +234,10 @@ std::vector<uint8_t> DriverHidSyncLight::buildScFrame (
 
 
 std::array<uint8_t, 10> DriverHidSyncLight::buildSectionPayload (
-		quint8 section,
-		quint8 red,
-		quint8 green,
-		quint8 blue)
+		uint8_t section,
+		uint8_t red,
+		uint8_t green,
+		uint8_t blue)
 {
 	return {
 		section,
@@ -297,9 +297,9 @@ ColorRgb DriverHidSyncLight::averageColorRange (
 }
 
 
-quint8 DriverHidSyncLight::nextId ()
+uint8_t DriverHidSyncLight::nextId ()
 {
-	_idCounter = static_cast<quint8> (_idCounter + 1);
+	_idCounter = static_cast<uint8_t> (_idCounter + 1);
 	if (_idCounter == 0) {
 		_idCounter = 1;
 	}
@@ -412,7 +412,7 @@ bool DriverHidSyncLight::sendBlackFrame (const Device& device)
 }
 
 
-bool DriverHidSyncLight::sendBrightness (const Device& device, quint8 value)
+bool DriverHidSyncLight::sendBrightness (const Device& device, uint8_t value)
 {
 	const std::array<uint8_t, 1> payload = { value };
 	HidReport report {};

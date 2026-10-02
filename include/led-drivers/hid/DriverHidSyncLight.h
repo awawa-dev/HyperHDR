@@ -74,27 +74,27 @@ class DriverHidSyncLight : public ProviderHid
 		static constexpr int sc_checksum_size = 1;
 		static constexpr int default_controller_led_count = 65;
 		static constexpr size_t maximum_led_count = 254;
-		static constexpr quint8 action_color = 0x86;
-		static constexpr quint8 action_brightness = 0x87;
-		static constexpr quint8 action_keepalive = 0x97;
-		static constexpr quint8 section_global = 1;
+		static constexpr uint8_t action_color = 0x86;
+		static constexpr uint8_t action_brightness = 0x87;
+		static constexpr uint8_t action_keepalive = 0x97;
+		static constexpr uint8_t section_global = 1;
 
-		static quint8 checksum (std::span<const uint8_t> data);
+		static uint8_t checksum (std::span<const uint8_t> data);
 		static bool buildRbFrame (
 				HidReport& report,
-				quint8 action,
+				uint8_t action,
 				std::span<const uint8_t> payload,
-				quint8 id);
+				uint8_t id);
 		static std::vector<uint8_t> buildScFrame (
 				std::span<const ColorRgb> ledValues,
 				int totalLedCount,
 				int controllerLedCount,
-				quint8 id);
+				uint8_t id);
 		static std::array<uint8_t, 10> buildSectionPayload (
-				quint8 section,
-				quint8 red,
-				quint8 green,
-				quint8 blue);
+				uint8_t section,
+				uint8_t red,
+				uint8_t green,
+				uint8_t blue);
 		static ColorRgb averageColor (std::span<const ColorRgb> ledValues, int ledCount);
 		static ColorRgb averageColorRange (
 				std::span<const ColorRgb> ledValues,
@@ -113,12 +113,12 @@ class DriverHidSyncLight : public ProviderHid
 				std::span<const ColorRgb> ledValues,
 				int totalLedCount);
 		bool sendBlackFrame (const Device& device);
-		bool sendBrightness (const Device& device, quint8 value);
+		bool sendBrightness (const Device& device, uint8_t value);
 
-		quint8 nextId ();
+		uint8_t nextId ();
 
-		quint8 _idCounter = 0;
-		quint8 _brightness = 0xff;
+		uint8_t _idCounter = 0;
+		uint8_t _brightness = 0xff;
 		int _totalLedCount = 0;
 		int _controllerLedCount = default_controller_led_count;
 		OutputMode _outputMode = OutputMode::Global;
