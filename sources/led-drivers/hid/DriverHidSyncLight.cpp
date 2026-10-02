@@ -64,7 +64,7 @@ bool DriverHidSyncLight::init (QJsonObject deviceConfig)
 
 bool DriverHidSyncLight::init_device (const Device& device)
 {
-	if (!sendRb (device, action_keepalive, QByteArray ()))
+	if (!sendKeepalive (device))
 	{
 		setInError (QString ("SyncLight keepalive failed after opening HID device %1")
 				.arg (QString::fromStdString (device.path)));
@@ -327,6 +327,12 @@ bool DriverHidSyncLight::sendRb (
 }
 
 
+bool DriverHidSyncLight::sendKeepalive (const Device& device)
+{
+	return sendRb (device, action_keepalive, QByteArray ());
+}
+
+
 bool DriverHidSyncLight::sendAveragedSectionColor (
 		const Device& device,
 		std::span<const ColorRgb> ledValues,
@@ -335,7 +341,7 @@ bool DriverHidSyncLight::sendAveragedSectionColor (
 	const ColorRgb color = averageColor (ledValues, totalLedCount);
 
 	/* This mirrors the confirmed working sequence from the original Rust UI. */
-	if (!sendRb (device, action_keepalive, QByteArray ())) {
+	if (!sendKeepalive (device)) {
 		return false;
 	}
 

@@ -100,6 +100,7 @@ class DriverHidSyncLight : public ProviderHid
 
 		bool writeReport (const Device& device, const HidReport& report);
 		bool sendRb (const Device& device, quint8 action, const QByteArray& payload);
+		bool sendKeepalive (const Device& device);
 		bool sendAveragedSectionColor (
 				const Device& device,
 				std::span<const ColorRgb> ledValues,
