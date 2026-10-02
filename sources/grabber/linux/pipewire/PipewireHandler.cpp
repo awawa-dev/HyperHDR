@@ -683,7 +683,7 @@ bool PipewireHandler::initGamescope(uint& node_id, int& width, int& height, int 
 			const auto* n = spa_dict_lookup(p, PW_KEY_NODE_NAME);
 			const auto* m = spa_dict_lookup(p, PW_KEY_MEDIA_CLASS);
 
-			if (!spa_streq(n, "gamescope") || !spa_streq(m, "Video/Source"))
+			if (!n || !m || strcmp(n, "gamescope") || strcmp(m, "Video/Source"))
 				return;
 
 			s.node_id = id;
