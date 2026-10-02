@@ -677,7 +677,7 @@ bool PipewireHandler::initGamescope(uint& node_id, int& width, int& height, int 
 		.global = [](void* d, uint32_t id, uint32_t, const char* type, uint32_t, const spa_dict* p) {
 			auto& s = *static_cast<Data*>(d);
 
-			if (s.node_id != SPA_ID_INVALID || !spa_streq(type, PW_TYPE_INTERFACE_Node))
+			if (s.node_id != SPA_ID_INVALID || !type || strcmp(type, PW_TYPE_INTERFACE_Node))
 				return;
 
 			const auto* n = spa_dict_lookup(p, PW_KEY_NODE_NAME);
