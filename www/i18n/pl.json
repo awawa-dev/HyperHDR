@@ -1214,6 +1214,7 @@
   "edt_conf_monitor_nits_title": "Korekta jasności HDR",
   "edt_conf_monitor_nits_expl": "Docelowa jasność SDR używana do konwersji HDR na SDR. Jeśli wynosi 0, wyłącza sprzętową konwersję kolorów przy jednoczesnym zachowaniu przyspieszonego skalowania.",
   "edt_append_nits": "nits",
+  "edt_append_frames": "Frames",
   "edt_conf_gen_disableOnLocked_title": "Wyłącz przy zablokowanym systemie lub wyłączonym monitorze",
   "edt_conf_gen_disableOnLocked_expl": "Zatrzymuje działanie grabbera programowego podczas blokady systemu lub wyłączenia monitora.",
   "edt_conf_gen_disableLedsStartup_title": "Wyłącz diody LED przy uruchomieniu",
