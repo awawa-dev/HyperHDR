@@ -35,6 +35,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 SET ( DEFAULT_PROTOBUF                    ON  )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_SPI_FTDI                    ON  )
+SET ( DEFAULT_HID                         OFF )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS ON  )
 SET ( DEFAULT_USE_SYSTEM_LUNASVG_LIBS     OFF )
 SET ( DEFAULT_USE_SYSTEM_NANOPB_LIBS      OFF )
@@ -416,6 +417,9 @@ colorMe("ENABLE_SPI_FTDI = " ${ENABLE_SPI_FTDI})
 
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 colorMe("ENABLE_WS281XPWM = " ${ENABLE_WS281XPWM})
+
+option(ENABLE_HID "Enable USB HID devices" ${DEFAULT_HID} )
+colorMe("ENABLE_HID = " ${ENABLE_HID})
 
 message( STATUS "\n${CyanColor}SOFTWARE GRABBERS${ColorReset}")
 
