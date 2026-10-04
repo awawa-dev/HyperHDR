@@ -104,6 +104,7 @@ void QtHttpServer::onClientConnected()
 			else
 			{
 				sock->close();
+				sock->deleteLater();
 			}
 		}
 	}
