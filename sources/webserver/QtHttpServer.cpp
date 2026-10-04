@@ -104,6 +104,7 @@ void QtHttpServer::onClientConnected()
 			else
 			{
 				sock->close();
+				sock->deleteLater();
 			}
 		}
 	}
@@ -119,6 +120,7 @@ void QtHttpServer::onClientDisconnected()
 			wrapper->deleteLater();
 			m_socksClientsHash.remove(sockClient);
 		}
+		sockClient->deleteLater();
 	}
 }
 
