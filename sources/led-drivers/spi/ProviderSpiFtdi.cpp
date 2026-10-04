@@ -220,7 +220,7 @@ QString ProviderSpiFtdi::open()
 
 		if (_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent) != FT_OK)
 		{
-			error = "Cannot initilize SPI interface";
+			error = "Cannot initialize SPI interface";
 		}
 	}
 

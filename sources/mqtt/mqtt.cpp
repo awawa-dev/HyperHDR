@@ -1,35 +1,56 @@
 // project includes
 #include <mqtt/mqtt.h>
 
-#include <base/HyperHdrInstance.h>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QUrl>
+#include <QAbstractSocket>
 #include <QHostInfo>
+#include <QJsonObject>
+#include <QSslError>
+#include <QSslSocket>
+#include <QTcpSocket>
+
+#include <algorithm>
+#include <utility>
 
 #include <api/HyperAPI.h>
 #include <utils/GlobalSignals.h>
+#include <utils/InternalClock.h>
 
-// default param %1 is 'HyperHDR', do not edit templates here
-constexpr const char* TEMPLATE_HYPERHDRAPI = "%1/JsonAPI";
-constexpr const char* TEMPLATE_HYPERHDRAPI_RESPONSE = "%1/JsonAPI/response";
+namespace
+{
+	constexpr const char* TEMPLATE_HYPERHDRAPI = "%1/JsonAPI";
+	constexpr const char* TEMPLATE_HYPERHDRAPI_RESPONSE = "%1/JsonAPI/response";
+
+	int keepAliveTimerMs(const MQTTContext_t& context)
+	{
+		return (context.keepAliveIntervalSec == 0) ? 0 : std::clamp(static_cast<int>(context.keepAliveIntervalSec) * 250, 250, 1000);
+	}
+}
+
+struct NetworkContext
+{
+	mqtt* owner = nullptr;
+	QAbstractSocket* socket = nullptr;
+	bool waitForData = false;
+};
 
 mqtt::mqtt(const QJsonDocument& mqttConfig)
-	: QObject()
-	, _enabled(false)
-	, _port(1883)
-	, _is_ssl(false)
-	, _ignore_ssl_errors(true)
-	, _maxRetry(0)
-	, _currentRetry(0)
-	, _retryTimer(nullptr)
-	, _initialized(false)
-	, _disableApiAccess(false)
-	, _log("MQTT")
-	, _clientInstance(nullptr)
 {
-	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttLastWill, this, &mqtt::handleSignalMqttLastWill, Qt::UniqueConnection);
+	_processTimer = new QTimer(this);
+	connect(_processTimer, &QTimer::timeout, this, &mqtt::processLoop);
+
+	_retryTimer = new QTimer(this);
+	_retryTimer->setSingleShot(true);
+	connect(_retryTimer, &QTimer::timeout, this, [this]
+		{
+			if (!_connected && !_connecting && ++_currentRetry <= _maxRetry) {
+				Debug(_log, "Retrying {:d}/{:d}", _currentRetry, _maxRetry);
+				start(_host, _port, _username, _password, _is_ssl, _ignore_ssl_errors, _customTopic);
+			}
+		});
+
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttLastWill, this, &mqtt::handleSignalMqttLastWill);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttSubscribe, this, &mqtt::handleSignalMqttSubscribe);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttPublish, this, &mqtt::handleSignalMqttPublish);
 
 	handleSettingsUpdate(settings::type::MQTT, mqttConfig);
 }
@@ -41,225 +62,364 @@ mqtt::~mqtt()
 	Debug(_log, "MQTT server is closed");
 }
 
-void mqtt::start(QString host, int port, QString username, QString password, bool is_ssl, bool ignore_ssl_errors, QString customTopic)
+uint32_t mqtt::nowMs()
 {
-
-	if (_clientInstance != nullptr)
-		return;
-
-	HYPERHDRAPI = QString(TEMPLATE_HYPERHDRAPI).arg(customTopic);
-	HYPERHDRAPI_RESPONSE = QString(TEMPLATE_HYPERHDRAPI_RESPONSE).arg(customTopic);
-
-	Debug(_log, "Starting the MQTT connection. Address: {:s}:{:d}. Protocol: {:s}. Authentication: {:s}, Ignore errors: {:s}",
-		(host), port, (is_ssl) ? "SSL" : "NO SSL", (!username.isEmpty() || !password.isEmpty()) ? "YES" : "NO", (ignore_ssl_errors) ? "YES" : "NO");
-
-	if (!_disableApiAccess)
-	{
-		Debug(_log, "MQTT topic: {:s}, MQTT response: {:s}", (HYPERHDRAPI), (HYPERHDRAPI_RESPONSE));
-	}
-	else
-	{
-		Debug(_log, "MQTT access to HyperHDR API is disabled by user");
-	}
-
-	QHostAddress address(host);
-
-	if (!is_ssl && QAbstractSocket::IPv4Protocol != address.protocol() && QAbstractSocket::IPv6Protocol != address.protocol())
-	{
-		Debug(_log, "The search for the name translated to the IP address has started...");
-		QHostInfo info = QHostInfo::fromName(host);
-		if (!info.addresses().isEmpty())
-		{
-			const auto infoAdr = info.addresses();
-			address = infoAdr.first();
-		}
-		Debug(_log, "The search for IP has finished: {:s} => {:s}", (host), (address.toString()));
-	}
-	
-	if (is_ssl)
-	{
-		QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
-		_clientInstance = new QMQTT::Client(host, port, sslConfig, ignore_ssl_errors, this);
-	}
-	else
-		_clientInstance = new QMQTT::Client(address, port, this);
-
-	QString clientId = QString("HyperHDR:%1").arg(QHostInfo::localHostName());
-	_clientInstance->setClientId(clientId);
-
-	if (!username.isEmpty())
-		_clientInstance->setUsername(username);
-
-	if (!password.isEmpty())
-		_clientInstance->setPassword(password.toLocal8Bit());
-
-	if (is_ssl && ignore_ssl_errors)
-	{
-		QObject::connect(_clientInstance, &QMQTT::Client::sslErrors, this, [this](const QList<QSslError>& /*errors*/) {
-			if (_clientInstance != nullptr)
-				_clientInstance->ignoreSslErrors();
-		});
-	}
-	QObject::connect(_clientInstance, &QMQTT::Client::error, this, &mqtt::error);
-	QObject::connect(_clientInstance, &QMQTT::Client::connected, this, &mqtt::connected);
-	QObject::connect(_clientInstance, &QMQTT::Client::received, this, &mqtt::received);
-	QObject::connect(_clientInstance, &QMQTT::Client::disconnected, this, &mqtt::disconnected);
-	_clientInstance->connectToHost();
+	return static_cast<uint32_t>(InternalClock::now());
 }
 
-void mqtt::stop()
+int32_t mqtt::transportSend(NetworkContext_t* context, const void* buffer, size_t size)
 {
-	if (_clientInstance != nullptr)
+	if (size == 0)
+		return 0;
+
+	if (!context || !context->socket || context->socket->state() != QAbstractSocket::ConnectedState)
+		return -1;
+
+	const qint64 written = context->socket->write(static_cast<const char*>(buffer), static_cast<qint64>(size));
+	return written < 0 ? -1 : static_cast<int32_t>(written);
+}
+
+int32_t mqtt::transportRecv(NetworkContext_t* context, void* buffer, size_t size)
+{
+	if (size == 0)
+		return 0;
+	if (!context || !context->socket || context->socket->state() != QAbstractSocket::ConnectedState)
+		return -1;
+
+	auto* socket = context->socket;
+	if (socket->bytesAvailable() == 0 && context->waitForData)
+		socket->waitForReadyRead(ConnectReceiveWaitMs);
+
+	if (socket->bytesAvailable() == 0)
+		return 0;
+
+	const qint64 read = socket->read(static_cast<char*>(buffer), static_cast<qint64>(size));
+	return read < 0 ? -1 : static_cast<int32_t>(read);
+}
+
+bool mqtt::eventCallback(MQTTContext_t* context, MQTTPacketInfo_t* packetInfo, MQTTDeserializedInfo_t* deserializedInfo, MQTTSuccessFailReasonCode_t*, MQTTPropBuilder_t*, MQTTPropBuilder_t*)
+{
+	if (!context || !packetInfo || !deserializedInfo)
+		return true;
+
+	auto* network = static_cast<NetworkContext_t*>(context->transportInterface.pNetworkContext);
+	if (!network || !network->owner)
+		return false;
+
+	auto* self = network->owner;
+	if ((packetInfo->type & 0xF0U) == MQTT_PACKET_TYPE_PUBLISH)
 	{
-		Debug(_log, "Closing MQTT");
-		disconnect(_clientInstance, nullptr, this, nullptr);
-		_clientInstance->disconnectFromHost();
-		_clientInstance->deleteLater();
-		_clientInstance = nullptr;
+		const auto* publish = deserializedInfo->pPublishInfo;
+		if (!publish || !publish->pTopicName)
+			return true;
+
+		const QString topic = QString::fromUtf8(publish->pTopicName, static_cast<int>(publish->topicNameLength));
+		const QString payload = publish->payloadLength ? QString::fromUtf8(static_cast<const char*>(publish->pPayload), static_cast<int>(publish->payloadLength)) : QString{};
+		self->received(topic, payload);
+	}
+	else if (packetInfo->type == MQTT_PACKET_TYPE_SUBACK || packetInfo->type == MQTT_PACKET_TYPE_UNSUBACK)
+	{
+		const auto* reasons = deserializedInfo->pReasonCode;
+		if (!reasons || reasons->reasonCodeLength == 0)
+			return true;
+
+		for (size_t i = 0; i < reasons->reasonCodeLength; ++i)
+		{
+			const uint8_t code = reasons->reasonCode[i];
+			const bool success = (packetInfo->type == MQTT_PACKET_TYPE_UNSUBACK) ? code == MQTT_REASON_UNSUBACK_SUCCESS
+								: code == MQTT_REASON_SUBACK_GRANTED_QOS0 || code == MQTT_REASON_SUBACK_GRANTED_QOS1 || code == MQTT_REASON_SUBACK_GRANTED_QOS2;
+
+			if (!success)
+			{
+				const char* packetType = packetInfo->type == MQTT_PACKET_TYPE_SUBACK ? "SUBACK" : "UNSUBACK";
+				Error(self->_log, "{:s} rejected: packetId={:d}, reasonCode=0x{:02X}", packetType, deserializedInfo->packetIdentifier, code);
+			}
+			else if (packetInfo->type == MQTT_PACKET_TYPE_SUBACK && deserializedInfo->packetIdentifier == self->_apiSubscribePacketId)
+			{
+				Debug(self->_log, "MQTT API subscription accepted: packetId={:d}, qos={:d}", deserializedInfo->packetIdentifier, code);
+			}
+		}
+	}
+	else if (packetInfo->type == MQTT_PACKET_TYPE_DISCONNECT)
+	{
+		self->_brokerDisconnected = true;
+		if (const auto* reason = deserializedInfo->pReasonCode; reason && reason->reasonCodeLength > 0 && reason->reasonCode[0] != MQTT_REASON_DISCONNECT_NORMAL_DISCONNECTION)
+			Error(self->_log, "Broker disconnected: reasonCode=0x{:02X}", reason->reasonCode[0]);
+		else
+			Debug(self->_log, "Broker disconnected normally");
+	}
+
+	return true;
+}
+
+void mqtt::start(QString host, int port, QString username, QString password, bool is_ssl, bool ignore_ssl_errors, QString customTopic)
+{
+	if (_socket || _connecting || _connected)
+		return;
+
+	_stopping = false;
+	_brokerDisconnected = false;
+	_apiSubscribePacketId = MQTT_PACKET_ID_INVALID;
+	_retryTimer->stop();
+	_host = std::move(host);
+	_port = port;
+	_username = std::move(username);
+	_password = std::move(password);
+	_is_ssl = is_ssl;
+	_ignore_ssl_errors = ignore_ssl_errors;
+	_customTopic = std::move(customTopic);
+
+	HYPERHDRAPI = QString(TEMPLATE_HYPERHDRAPI).arg(_customTopic);
+	HYPERHDRAPI_RESPONSE = QString(TEMPLATE_HYPERHDRAPI_RESPONSE).arg(_customTopic);
+
+	Debug(_log, "Starting MQTT connection. Address: {:s}:{:d}. Protocol: {:s}. Authentication: {:s}, Ignore SSL errors: {:s}", (_host), _port, _is_ssl ? "SSL" : "NO SSL", (!_username.isEmpty() || !_password.isEmpty()) ? "YES" : "NO", _ignore_ssl_errors ? "YES" : "NO");
+
+	if (!_disableApiAccess)
+		Debug(_log, "MQTT topic: {:s}, MQTT response: {:s}", (HYPERHDRAPI), (HYPERHDRAPI_RESPONSE));
+	else
+		Debug(_log, "MQTT access to HyperHDR API is disabled by user");
+
+	_network = std::make_unique<NetworkContext>();
+	_network->owner = this;
+
+	_transport = {};
+	_transport.recv = &mqtt::transportRecv;
+	_transport.send = &mqtt::transportSend;
+	_transport.writev = nullptr;
+	_transport.pNetworkContext = _network.get();
+	_fixedBuffer = { _networkBuffer.data(), _networkBuffer.size() };
+
+	_connecting = true;
+	auto status = MQTT_Init(&_mqttContext, &_transport, &mqtt::nowMs, &mqtt::eventCallback, &_fixedBuffer);
+	if (status == MQTTSuccess)
+		status = MQTT_InitStatefulQoS(&_mqttContext, _outgoingQos.data(), _outgoingQos.size(), _incomingQos.data(), _incomingQos.size(), nullptr, 0);
+
+	if (status != MQTTSuccess)
+	{
+		error(status);
+		transportFailure();
+		return;
+	}
+
+	if (_is_ssl)
+	{
+		auto* socket = new QSslSocket(this);
+		_socket = socket;
+
+		if (_ignore_ssl_errors)
+			connect(socket, qOverload<const QList<QSslError>&>(&QSslSocket::sslErrors), socket, [socket](const QList<QSslError>&) { socket->ignoreSslErrors(); });
+
+		connect(socket, &QSslSocket::encrypted, this, &mqtt::connectMqtt);
+	}
+	else
+	{
+		auto* socket = new QTcpSocket(this);
+		_socket = socket;
+		connect(socket, &QTcpSocket::connected, this, &mqtt::connectMqtt);
+	}
+
+	connect(_socket, &QAbstractSocket::readyRead, this, &mqtt::processLoop);
+	connect(_socket, &QAbstractSocket::disconnected, this, [this] { disconnected(); detachSocket(); });
+	connect(_socket, &QAbstractSocket::errorOccurred, this, [this]
+		{
+			if (!_stopping) {
+				if (_socket)
+					Error(_log, "MQTT transport error: {:s}", (_socket->errorString()));
+				QMetaObject::invokeMethod(this, [this] { transportFailure(); }, Qt::QueuedConnection);
+			}
+		});
+
+	if (_is_ssl)
+		static_cast<QSslSocket*>(_socket)->connectToHostEncrypted(_host, static_cast<quint16>(_port));
+	else
+		static_cast<QTcpSocket*>(_socket)->connectToHost(_host, static_cast<quint16>(_port));
+}
+
+void mqtt::connectMqtt()
+{
+	if (!_socket || !_network || !_connecting)
+		return;
+
+	_network->socket = _socket;
+
+	const QByteArray clientId = QStringLiteral("HyperHDR:%1").arg(QHostInfo::localHostName()).toUtf8();
+	const QByteArray username = _username.toUtf8();
+	const QByteArray password = _password.toUtf8();
+	MQTTConnectInfo_t connectInfo{};
+	connectInfo.cleanSession = true;
+	connectInfo.keepAliveSeconds = 60;
+	connectInfo.pClientIdentifier = clientId.constData();
+	connectInfo.clientIdentifierLength = static_cast<size_t>(clientId.size());
+
+	if (!username.isEmpty())
+	{
+		connectInfo.pUserName = username.constData();
+		connectInfo.userNameLength = static_cast<size_t>(username.size());
+	}
+	if (!password.isEmpty())
+	{
+		connectInfo.pPassword = password.constData();
+		connectInfo.passwordLength = static_cast<size_t>(password.size());
+	}
+
+	bool sessionPresent = false;
+	_network->waitForData = true;
+	const auto status = MQTT_Connect(&_mqttContext, &connectInfo, nullptr, ConnectTimeoutMs, &sessionPresent, nullptr, nullptr);
+	_network->waitForData = false;
+	if (status != MQTTSuccess) {
+		error(status);
+		transportFailure();
+	}
+	else {
+		_connecting = false;
+		connected();
+		processLoop();
+	}
+}
+
+void mqtt::processLoop()
+{
+	if (!_connected || !_socket || !_network)
+		return;
+	
+	if (const auto status = MQTT_ProcessLoop(&_mqttContext); _brokerDisconnected)
+	{
+		transportFailure();
+
+	}
+	else if (status != MQTTSuccess && status != MQTTNeedMoreBytes)
+	{
+		error(status);
+		transportFailure();
+	}
+	else if (_socket->bytesAvailable() > 0)
+		QTimer::singleShot(0, this, &mqtt::processLoop);
+}
+
+void mqtt::connected()
+{
+	_connected = true;
+	_currentRetry = 0;
+	_retryTimer->stop();
+	Debug(_log, "Connected");
+
+	if (!_disableApiAccess)
+		subscribe(HYPERHDRAPI, MQTTQoS2);
+
+	if (!_connected)
+		return;
+	
+	if (const int interval = keepAliveTimerMs(_mqttContext); interval > 0)
+	{
+		_processTimer->setInterval(interval);
+		_processTimer->start();
 	}
 }
 
 void mqtt::disconnected()
 {
-	Debug(_log, "Disconnected");
+	const bool wasActive = _connected || _connecting;
+	_connected = false;
+	_connecting = false;
+	_processTimer->stop();
 
-	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttSubscribe, this, &mqtt::handleSignalMqttSubscribe);
-	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttPublish, this, &mqtt::handleSignalMqttPublish);
-}
+	if (wasActive) {
+		Debug(_log, "Disconnected");
 
-void mqtt::connected()
-{
-	Debug(_log, "Connected");
-
-	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttSubscribe, this, &mqtt::handleSignalMqttSubscribe, Qt::UniqueConnection);
-	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttPublish, this, &mqtt::handleSignalMqttPublish, Qt::UniqueConnection);
-
-	if (_retryTimer != nullptr)
-	{
-		Debug(_log, "Removing retry timer");
-		disconnect(_retryTimer, nullptr, nullptr, nullptr);
-		_retryTimer->deleteLater();
-		_retryTimer = nullptr;
-	}
-
-	if (_clientInstance != nullptr && !_disableApiAccess)
-	{
-		_clientInstance->subscribe(HYPERHDRAPI, 2);
+		if (!_stopping)
+			initRetry();
 	}
 }
 
-void mqtt::handleSignalMqttSubscribe(bool subscribe, QString topic)
+void mqtt::transportFailure()
 {
-	if (_clientInstance == nullptr)
-		return;
-
-	if (subscribe)
-	{
-		_clientInstance->subscribe(topic, 0);
-	}
-	else
-	{
-		_clientInstance->unsubscribe(topic);
+	if (!_stopping && (_socket || _network)) {
+		disconnected();
+		detachSocket();
+		_network.reset();
+		_brokerDisconnected = false;
 	}
 }
 
-void mqtt::error(const QMQTT::ClientError error)
+void mqtt::error(MQTTStatus_t status)
 {
-	QString message;
-	switch (error)
-	{
-		case(QMQTT::ClientError::UnknownError): message = "UnknownError"; break;
-		case(QMQTT::ClientError::SocketConnectionRefusedError): message = "SocketConnectionRefusedError"; break;
-		case(QMQTT::ClientError::SocketRemoteHostClosedError): message = "SocketRemoteHostClosedError"; break;
-		case(QMQTT::ClientError::SocketHostNotFoundError): message = "SocketHostNotFoundError"; break;
-		case(QMQTT::ClientError::SocketAccessError): message = "SocketAccessError"; break;
-		case(QMQTT::ClientError::SocketResourceError): message = "SocketResourceError"; break;
-		case(QMQTT::ClientError::SocketTimeoutError): message = "SocketTimeoutError"; break;
-		case(QMQTT::ClientError::SocketDatagramTooLargeError): message = "SocketDatagramTooLargeError"; break;
-		case(QMQTT::ClientError::SocketNetworkError): message = "SocketNetworkError"; break;
-		case(QMQTT::ClientError::SocketAddressInUseError): message = "SocketAddressInUseError"; break;
-		case(QMQTT::ClientError::SocketAddressNotAvailableError): message = "SocketAddressNotAvailableError"; break;
-		case(QMQTT::ClientError::SocketUnsupportedSocketOperationError): message = "SocketUnsupportedSocketOperationError"; break;
-		case(QMQTT::ClientError::SocketUnfinishedSocketOperationError): message = "SocketUnfinishedSocketOperationError"; break;
-		case(QMQTT::ClientError::SocketProxyAuthenticationRequiredError): message = "SocketProxyAuthenticationRequiredError"; break;
-		case(QMQTT::ClientError::SocketSslHandshakeFailedError): message = "SocketSslHandshakeFailedError"; break;
-		case(QMQTT::ClientError::SocketProxyConnectionRefusedError): message = "SocketProxyConnectionRefusedError"; break;
-		case(QMQTT::ClientError::SocketProxyConnectionClosedError): message = "SocketProxyConnectionClosedError"; break;
-		case(QMQTT::ClientError::SocketProxyConnectionTimeoutError): message = "SocketProxyConnectionTimeoutError"; break;
-		case(QMQTT::ClientError::SocketProxyNotFoundError): message = "SocketProxyNotFoundError"; break;
-		case(QMQTT::ClientError::SocketProxyProtocolError): message = "SocketProxyProtocolError"; break;
-		case(QMQTT::ClientError::SocketOperationError): message = "SocketOperationError"; break;
-		case(QMQTT::ClientError::SocketSslInternalError): message = "SocketSslInternalError"; break;
-		case(QMQTT::ClientError::SocketSslInvalidUserDataError): message = "SocketSslInvalidUserDataError"; break;
-		case(QMQTT::ClientError::SocketTemporaryError): message = "SocketTemporaryError"; break;
-		case(1 << 16): message = "MqttUnacceptableProtocolVersionError"; break;
-		case(QMQTT::ClientError::MqttIdentifierRejectedError): message = "MqttIdentifierRejectedError"; break;
-		case(QMQTT::ClientError::MqttServerUnavailableError): message = "MqttServerUnavailableError"; break;
-		case(QMQTT::ClientError::MqttBadUserNameOrPasswordError): message = "MqttBadUserNameOrPasswordError"; break;
-		case(QMQTT::ClientError::MqttNotAuthorizedError): message = "MqttNotAuthorizedError"; break;
-		case(QMQTT::ClientError::MqttNoPingResponse): message = "MqttNoPingResponse"; break;
-	}
-	Error(_log, "Error: {:s}", (message));
+	Error(_log, "MQTT error: {:s}", (MQTT_Status_strerror(status)));
+}
 
-	initRetry();
+void mqtt::stop()
+{
+	_stopping = true;
+	_processTimer->stop();
+	_retryTimer->stop();
+	_currentRetry = 0;
+
+	if (_connected && _network && _network->socket && _network->socket->state() == QAbstractSocket::ConnectedState)
+	{		
+		if (const auto status = MQTT_Disconnect(&_mqttContext, nullptr, nullptr); status != MQTTSuccess)
+			Error(_log, "MQTT disconnect failed: {:s}", (MQTT_Status_strerror(status)));
+
+		_network->socket->flush();
+		_network->socket->waitForBytesWritten(20);
+	}
+
+	_connected = false;
+	_connecting = false;
+	detachSocket();
+	_network.reset();
+	_brokerDisconnected = false;
+}
+
+void mqtt::detachSocket()
+{
+	_processTimer->stop();
+	if (_socket)
+	{		
+		auto* socket = std::exchange(_socket, nullptr);
+		QObject::disconnect(socket, nullptr, this, nullptr);
+		socket->abort();
+		socket->deleteLater();
+	}
+
+	if (_network)
+		_network->socket = nullptr;
 }
 
 void mqtt::initRetry()
 {
-	if (_maxRetry > 0 && _retryTimer == nullptr)
-	{
-		int intervalSec = 10;
-		Debug(_log, "Prepare to retry in {:d} seconds (limit: {:d})", intervalSec, _maxRetry);
-		_currentRetry = 0;
-		_retryTimer = new QTimer(this);
-		_retryTimer->setInterval(intervalSec * 1000);
-		connect(_retryTimer, &QTimer::timeout, this, [this]() {
-			if (_clientInstance == nullptr || _clientInstance->isConnectedToHost() || ++_currentRetry > _maxRetry)
-			{
-				Debug(_log, "Removing retry timer");
-				disconnect(_retryTimer, nullptr, nullptr, nullptr);
-				_retryTimer->deleteLater();
-				_retryTimer = nullptr;
-			}
-			else
-			{
-				Debug(_log, "Retrying {:d}/{:d}", _currentRetry, _maxRetry);
-				_clientInstance->connectToHost();
-			}
-		});
-		_retryTimer->start();
-	}
+	if (_maxRetry <= 0 || _retryTimer->isActive() || _connected)
+		return;
+
+	Debug(_log, "Prepare to retry in {:d} seconds (limit: {:d})", RetryIntervalMs / 1000, _maxRetry);
+	_retryTimer->start(RetryIntervalMs);
 }
 
 void mqtt::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if (type == settings::type::MQTT)
+	if (type != settings::type::MQTT)
+		return;
+
+	const QJsonObject object = config.object();
+	_enabled = object["enable"].toBool(false);
+	_host = object["host"].toString();
+	_port = object["port"].toInt(1883);
+	_username = object["username"].toString();
+	_password = object["password"].toString();
+	_is_ssl = object["is_ssl"].toBool(false);
+	_ignore_ssl_errors = object["ignore_ssl_errors"].toBool(true);
+	_maxRetry = object["maxRetry"].toInt(120);
+	_disableApiAccess = object["disableApiAccess"].toBool(false);
+	_customTopic = object["custom_topic"].toString().trimmed();
+	if (_customTopic.isEmpty())
+		_customTopic = "HyperHDR";
+
+	if (_initialized)
 	{
-		QJsonObject obj = config.object();
+		stop();
+		if (_enabled)
+			start(_host, _port, _username, _password, _is_ssl, _ignore_ssl_errors, _customTopic);
+	}
 
-		_enabled = obj["enable"].toBool(false);
-		_host = obj["host"].toString();
-		_port = obj["port"].toInt(1883);
-		_username = obj["username"].toString();
-		_password = obj["password"].toString();
-		_is_ssl = obj["is_ssl"].toBool(false);
-		_ignore_ssl_errors = obj["ignore_ssl_errors"].toBool(true);
-		_maxRetry = obj["maxRetry"].toInt(120);
-		_disableApiAccess = obj["disableApiAccess"].toBool(false);
-
-		_customTopic = obj["custom_topic"].toString().trimmed();
-		if (_customTopic.isEmpty())
-			_customTopic = "HyperHDR";
-
-		if (_initialized)
-		{
-			stop();
-			if (_enabled)
-				start(_host, _port, _username, _password, _is_ssl, _ignore_ssl_errors, _customTopic);
-		}
-
-		_initialized = true;
-	}	
+	_initialized = true;
 }
 
 void mqtt::begin()
@@ -268,7 +428,114 @@ void mqtt::begin()
 		start(_host, _port, _username, _password, _is_ssl, _ignore_ssl_errors, _customTopic);
 }
 
-void mqtt::executeJson(QString origin, const QJsonDocument& input, QJsonDocument& result)
+void mqtt::handleSignalMqttSubscribe(bool subscribeTopic, QString topic)
+{
+	if (!_connected)
+		return;
+
+	if (subscribeTopic)
+		subscribe(topic, MQTTQoS0);
+	else
+		unsubscribe(topic);
+}
+
+void mqtt::handleSignalMqttPublish(QString topic, QString payload)
+{
+	if (_connected)
+		publish(topic, payload);
+}
+
+void mqtt::subscribe(const QString& topic, MQTTQoS_t qos)
+{
+	const QByteArray filter = topic.toUtf8();
+	MQTTSubscribeInfo_t subscription{};
+	subscription.qos = qos;
+	subscription.pTopicFilter = filter.constData();
+	subscription.topicFilterLength = static_cast<size_t>(filter.size());
+	subscription.retainHandlingOption = retainSendOnSub;
+
+	const uint16_t packetId = MQTT_GetPacketId(&_mqttContext);
+	
+	if (const auto status = MQTT_Subscribe(&_mqttContext, &subscription, 1, packetId, nullptr); status != MQTTSuccess)
+	{
+		error(status);
+		if (status == MQTTSendFailed)
+			transportFailure();
+	}
+	else if (topic == HYPERHDRAPI)
+	{
+		_apiSubscribePacketId = packetId;
+	}
+}
+
+void mqtt::unsubscribe(const QString& topic)
+{
+	const QByteArray filter = topic.toUtf8();
+	MQTTSubscribeInfo_t subscription{};
+	subscription.pTopicFilter = filter.constData();
+	subscription.topicFilterLength = static_cast<size_t>(filter.size());
+	subscription.retainHandlingOption = retainDoNotSendonSub;
+	
+	if (const auto status = MQTT_Unsubscribe(&_mqttContext, &subscription, 1, MQTT_GetPacketId(&_mqttContext), nullptr); status != MQTTSuccess)
+	{
+		error(status);
+		if (status == MQTTSendFailed)
+			transportFailure();
+	}
+}
+
+void mqtt::publish(const QString& topic, const QString& payload, MQTTQoS_t qos)
+{
+	if (!_connected)
+		return;
+
+	const QByteArray topicUtf8 = topic.toUtf8();
+	const QByteArray payloadUtf8 = payload.toUtf8();
+	MQTTPublishInfo_t publishInfo{};
+	publishInfo.qos = qos;
+	publishInfo.pTopicName = topicUtf8.constData();
+	publishInfo.topicNameLength = static_cast<size_t>(topicUtf8.size());
+	publishInfo.pPayload = payloadUtf8.constData();
+	publishInfo.payloadLength = static_cast<size_t>(payloadUtf8.size());
+
+	const uint16_t packetId = qos == MQTTQoS0 ? MQTT_PACKET_ID_INVALID : MQTT_GetPacketId(&_mqttContext);	
+	if (const auto status = MQTT_Publish(&_mqttContext, &publishInfo, packetId, nullptr); status != MQTTSuccess)
+	{
+		error(status);
+		if (status == MQTTSendFailed)
+			transportFailure();
+	}
+}
+
+void mqtt::received(const QString& topic, const QString& payload)
+{
+	if (topic == HYPERHDRAPI && !payload.isEmpty())
+	{
+		QJsonParseError parseError;
+		const QJsonDocument document = QJsonDocument::fromJson(payload.toUtf8(), &parseError);
+		QString response;
+
+		if (parseError.error != QJsonParseError::NoError){
+			QJsonObject errorObject;
+			errorObject["success"] = false;
+			errorObject["error"] = QStringLiteral("%1 at offset: %2").arg(parseError.errorString()).arg(parseError.offset);
+			response = QJsonDocument(errorObject).toJson(QJsonDocument::Compact);
+		}
+		else{
+			QJsonDocument result;
+			executeJson(QStringLiteral("MQTT"), document, result);
+			response = result.toJson(QJsonDocument::Compact);
+			Debug(_log, "JSON result: {:s}", (response));
+		}
+
+		publish(HYPERHDRAPI_RESPONSE, response, MQTTQoS2);
+		return;
+	}
+
+	emit GlobalSignals::getInstance()->SignalMqttReceived(topic, payload);
+}
+
+void mqtt::executeJson(const QString& origin, const QJsonDocument& input, QJsonDocument& result)
 {
 	if (_disableApiAccess)
 	{
@@ -276,32 +543,47 @@ void mqtt::executeJson(QString origin, const QJsonDocument& input, QJsonDocument
 		return;
 	}
 
-	HyperAPI* _hyperAPI = new HyperAPI(origin, _log, true, this);
-
-	_resultArray = QJsonArray();
-
-	_hyperAPI->initialize();
-	connect(_hyperAPI, &HyperAPI::SignalCallbackJsonMessage, this, [this](QJsonObject ret) {
-		_resultArray.append(ret);
-	});
+	auto* hyperAPI = new HyperAPI(origin, _log, true, this);
+	_resultArray = {};
+	connect(hyperAPI, &HyperAPI::SignalCallbackJsonMessage, this, [this](const QJsonObject& response) { _resultArray.append(response); });
+	hyperAPI->initialize();
 
 	if (input.isObject())
-		_hyperAPI->handleMessage(input.toJson());
+	{
+		hyperAPI->handleMessage(input.toJson());
+	}
 	else if (input.isArray())
 	{
-		const QJsonArray& array = input.array();
-		for (const auto& elem : array)
-			if (elem.isObject())
-			{
-				QJsonDocument doc(elem.toObject());
-				_hyperAPI->handleMessage(doc.toJson());
-			}
+		for (const auto& element : input.array())
+			if (element.isObject())
+				hyperAPI->handleMessage(QJsonDocument(element.toObject()).toJson());
 	}
 
 	result.setArray(_resultArray);
+	disconnect(hyperAPI, &HyperAPI::SignalCallbackJsonMessage, this, nullptr);
+	hyperAPI->deleteLater();
+}
 
-	disconnect(_hyperAPI, &HyperAPI::SignalCallbackJsonMessage, nullptr, nullptr);
-	_hyperAPI->deleteLater();
+void mqtt::handleSignalMqttLastWill(QString id, QStringList pairs)
+{
+	if (!id.isEmpty())
+	{
+		if (!pairs.isEmpty() && (pairs.size() % 2) == 0)
+			_lastWill.insert(id, std::move(pairs));
+		else 
+			_lastWill.remove(id);
+	}
+	else
+	{
+		for (auto it = _lastWill.cbegin(); it != _lastWill.cend(); ++it)
+		{
+			const auto& messages = it.value();
+			for (qsizetype i = 0; i + 1 < messages.size(); i += 2)
+				publish(messages.at(i), messages.at(i + 1));
+		}
+
+		_lastWill.clear();
+	}
 }
 
 ///////////////////////////////////////////////////////////
@@ -314,76 +596,3 @@ void mqtt::executeJson(QString origin, const QJsonDocument& input, QJsonDocument
 // mosquitto_pub -h localhost -t HyperHDR/JsonAPI -m "[{\"command\":\"componentstate\",\"componentstate\": {\"component\":\"HDR\",\"state\": true } }, {\"command\":\"componentstate\",\"componentstate\": {\"component\":\"HDR\",\"state\": false } }]"
 // mosquitto_pub -h localhost -t HyperHDR/JsonAPI -m "[{\"command\" : \"instance\",\"subcommand\":\"switchTo\",\"instance\":1},{\"command\":\"componentstate\",\"componentstate\":{\"component\":\"LEDDEVICE\",\"state\": false}}]"
 ///////////////////////////////////////////////////////////
-
-void mqtt::received(const QMQTT::Message& message)
-{
-	QString topic = message.topic();
-	QString payload = QString().fromUtf8(message.payload());
-
-	if (QString::compare(HYPERHDRAPI, topic) == 0 && payload.length() > 0)
-	{
-		QJsonParseError error;
-		QJsonDocument doc = QJsonDocument::fromJson(payload.toUtf8(), &error);
-		QMQTT::Message result;
-		result.setTopic(HYPERHDRAPI_RESPONSE);
-		result.setQos(2);
-		if (doc.isEmpty())
-			result.setPayload(QString("{\"success\" : false, \"error\" : \"%1 at offset: %2\"}").arg(error.errorString()).arg(error.offset).toUtf8());
-		else
-		{
-			QJsonDocument resJson;
-
-			executeJson("MQTT", doc, resJson);
-
-			QString returnPayload = resJson.toJson(QJsonDocument::Compact);
-			Debug(_log, "JSON result: {:s}", (returnPayload));
-			result.setPayload(returnPayload.toUtf8());
-		}		
-		_clientInstance->publish(result);		
-	}
-	else
-	{
-		emit GlobalSignals::getInstance()->SignalMqttReceived(topic, payload);
-	}
-}
-
-void mqtt::handleSignalMqttPublish(QString topic, QString payload)
-{
-	if (_clientInstance != nullptr)
-	{
-		QMQTT::Message message;
-		message.setTopic(topic);
-		message.setQos(0);
-		message.setPayload(payload.toUtf8());
-		
-		_clientInstance->publish(message);
-	}
-}
-
-void mqtt::handleSignalMqttLastWill(QString id, QStringList pairs)
-{
-	if (!id.isEmpty() && !pairs.isEmpty())
-	{
-		if ((pairs.size() % 2) == 0)
-		{
-			_lastWill[id] = pairs;
-		}
-	}
-	else if (!id.isEmpty())
-	{
-		_lastWill.erase(id);
-	}
-	else if (!_lastWill.empty())
-	{
-		for (const auto& current : _lastWill)
-			for (auto item = current.second.begin(); item != current.second.end(); ++item)
-			{
-				auto topic = *(item++);
-				if (item != current.second.end())
-				{
-					handleSignalMqttPublish(topic, *(item));
-				}
-			}
-		_lastWill.clear();
-	}
-}

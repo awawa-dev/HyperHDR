@@ -25,6 +25,7 @@
 *  SOFTWARE.
  */
 
+#include <algorithm>
 #include <cassert>
 #include <climits>
 #include <cstdio>
@@ -53,12 +54,13 @@ namespace
 {
 	bool (*_hasPipewire)() = nullptr;
 	const char* (*_getPipewireError)() = nullptr;
-	void (*_initPipewireDisplay)(const char* restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize) = nullptr;
+	void (*_initPipewireDisplay)(const char* restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize, int selectedDisplay) = nullptr;
 	void (*_uninitPipewireDisplay)() = nullptr;
 	PipewireImage(*_getFramePipewire)() = nullptr;
 	void (*_releaseFramePipewire)() = nullptr;
 	const char* (*_getPipewireToken)() = nullptr;
 	bool (*_isRestartNeeded)() = nullptr;
+	bool (*_hasPipewireRemoteDesktop)() = nullptr;
 }
 
 PipewireGrabber::PipewireGrabber(const QString& device, const QString& configurationPath)
@@ -88,17 +90,19 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 		_getPipewireToken = (const char* (*)()) dlsym(_library, "getPipewireToken");
 		_getPipewireError = (const char* (*)()) dlsym(_library, "getPipewireError");
 		_hasPipewire = (bool (*)()) dlsym(_library, "hasPipewire");
-		_initPipewireDisplay = (void (*)(const char*, uint32_t, bool, int)) dlsym(_library, "initPipewireDisplay");
+		_initPipewireDisplay = (void (*)(const char*, uint32_t, bool, int, int)) dlsym(_library, "initPipewireDisplay");
 		_uninitPipewireDisplay = (void (*)()) dlsym(_library, "uninitPipewireDisplay");
 		_getFramePipewire = (PipewireImage (*)()) dlsym(_library, "getFramePipewire");
 		_releaseFramePipewire = (void (*)()) dlsym(_library, "releaseFramePipewire");
 		_isRestartNeeded = (bool (*)()) dlsym(_library, "isRestartNeeded");
+		_hasPipewireRemoteDesktop = (bool (*)()) dlsym(_library, "hasPipewireRemoteDesktop");
 	}
 	else
 		Warning(_log, "Could not load Pipewire proxy library. Error: {:s}", dlerror());
 
 	if (_library && (_getPipewireToken == nullptr || _hasPipewire == nullptr || _releaseFramePipewire == nullptr ||
-		_initPipewireDisplay == nullptr || _uninitPipewireDisplay == nullptr || _getFramePipewire == nullptr || _isRestartNeeded == nullptr))
+		_initPipewireDisplay == nullptr || _uninitPipewireDisplay == nullptr || _getFramePipewire == nullptr || _isRestartNeeded == nullptr ||
+		_hasPipewireRemoteDesktop == nullptr))
 	{
 		Error(_log, "Could not load Pipewire proxy library definition. Error: {:s}", dlerror());
 
@@ -222,8 +226,10 @@ bool PipewireGrabber::init()
 		{
 			Debug(_log, "Forcing auto discovery device");
 			if (!_deviceProperties.isEmpty())
-			{				
-				foundDevice = _deviceProperties.firstKey();
+			{
+				foundDevice = std::min_element(_deviceProperties.cbegin(), _deviceProperties.cend(), [](const auto& a, const auto& b) {
+						return a.valid.first().input < b.valid.first().input;
+					}).key();
 				_deviceName = foundDevice;
 				Debug(_log, "Auto discovery set to {:s}", (_deviceName));
 			}
@@ -264,11 +270,22 @@ void PipewireGrabber::enumerateDevices(bool silent)
 		DeviceProperties properties;
 		DevicePropertiesItem dpi;
 
-		QString id = "Pipewire System Dialog selection";
-		dpi.input = 1;
+		QString id = "Pipewire System Dialog selection (ScreenCast API)";
+		dpi.input = PipewirePortal::ScreenID_ScreenCast;
 		properties.valid.append(dpi);
 
-		_deviceProperties.insert(id, properties);		
+		_deviceProperties.insert(id, properties);
+
+		if (_hasPipewireRemoteDesktop())
+		{
+			DeviceProperties remoteProperties;
+			DevicePropertiesItem remoteDpi;
+
+			remoteDpi.input = PipewirePortal::ScreenID_RemoteDesktop;
+			remoteProperties.valid.append(remoteDpi);
+
+			_deviceProperties.insert("Pipewire All Screens (RemoteDesktop API)", remoteProperties);
+		}
 	}	
 }
 
@@ -322,7 +339,7 @@ bool PipewireGrabber::init_device(int _display)
 		token = "";
 	else
 		Info(_log, "Loading restoration token: {:s}", (maskToken(token)));
-	_initPipewireDisplay(token.toLatin1().constData(), _fps, _hardware, _width);
+	_initPipewireDisplay(token.toLatin1().constData(), _fps, _hardware, _width, _actualDisplay);
 
 	return true;
 }
