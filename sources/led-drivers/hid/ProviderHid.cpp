@@ -1,8 +1,7 @@
 #include <led-drivers/hid/ProviderHid.h>
 
 #ifndef PCH_ENABLED
-	#include <QDir>
-	#include <QDirIterator>
+	#include <QDir>	
 	#include <QFile>
 	#include <QFileInfo>
 	#include <QJsonArray>
@@ -13,6 +12,7 @@
 #include <algorithm>
 #include <cerrno>
 #include <system_error>
+#include <QDirIterator>
 
 #if defined(_WIN32)
 	#ifndef NOMINMAX
