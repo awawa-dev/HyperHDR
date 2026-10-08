@@ -2,17 +2,11 @@
 	"type": "object",
 	"required": true,
 	"properties": {
-		"VID": {
+		"output": {
 			"type": "string",
-			"title": "edt_dev_spec_vid_title",
-			"default": "0x1a86",
-			"propertyOrder": 1
-		},
-		"PID": {
-			"type": "string",
-			"title": "edt_dev_spec_pid_title",
-			"default": "auto",
-			"propertyOrder": 2
+			"title":"edt_dev_spec_outputPath_title",
+			"default":"auto",
+			"propertyOrder" : 1
 		},
 		"brightness": {
 			"type": "integer",
@@ -20,29 +14,37 @@
 			"default": 255,
 			"minimum": 0,
 			"maximum": 255,
-			"propertyOrder": 3
+			"propertyOrder": 2
 		},
 		"outputMode": {
 			"type": "string",
-			"title": "Output mode",
+			"title": "remote_maptype_label",
 			"required": true,
 			"enum": [
 				"global",
 				"segments"
 			],
-			"default": "global",
+			"default": "segments",
 			"options": {
 				"enum_titles": [
-					"Global averaged color",
-					"Per-LED"
+					"remote_maptype_label_unicolor_mean",
+					"remote_maptype_label_multicolor_mean"					
 				]
 			},
-			"propertyOrder": 4
+			"propertyOrder": 3
 		},
 		"controllerLedCount": {
 			"type": "integer",
-			"title": "Controller LEDs",
-			"default": 65,
+			"title": "edt_dev_general_hardwareLedCount_title",
+			"default": 0,
+			"minimum": 0,
+			"maximum": 254,
+			"propertyOrder": 4
+		},
+		"controllerSegmentLimit": {
+			"type": "integer",
+			"title": "edt_dev_spec_maxPacket_title",
+			"default": 34,
 			"minimum": 1,
 			"maximum": 254,
 			"propertyOrder": 5

@@ -120,6 +120,7 @@
   "leds_group_5_debug": "Debug",
   "leds_group_2_network": "Network",
   "leds_group_3_serial": "USB/Serial",
+  "leds_group_6_HID": "HID",
   "conf_logging_btn_autoscroll": "Auto scrolling",
   "conf_logging_btn_pbupload": "Upload a report for support requests",
   "conf_logging_contpolicy": "Report Privacy Policy",

@@ -55,6 +55,10 @@ if ( ENABLE_WS281XPWM )
 	list( APPEND Leddevice_PWM_SOURCES ${Leddevice_rpi_ws281x})
 endif()
 
+IF ( ENABLE_HID )	
+	FILE ( GLOB Leddevice_HID_SOURCES "${CURRENT_HEADER_DIR}/hid/*.h" "${CURRENT_SOURCE_DIR}/hid/*.cpp")
+endif()
+
 qt_add_resources(LedDevice_RESOURCES ${CURRENT_SOURCE_DIR}/LedDeviceSchemas.qrc )
 
 SET( Leddevice_SOURCES
@@ -63,6 +67,7 @@ SET( Leddevice_SOURCES
 	${Leddevice_SERIAL_SOURCES}
 	${Leddevice_SPI_SOURCES}
 	${Leddevice_PWM_SOURCES}
+	${Leddevice_HID_SOURCES}
 )
 
 add_library(led-drivers OBJECT ${Leddevice_SOURCES} )
