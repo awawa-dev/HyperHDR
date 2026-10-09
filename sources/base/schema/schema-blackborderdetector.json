@@ -84,48 +84,6 @@
 			},
 			"required" : true,
 			"propertyOrder" : 7
-		},
-		"subtitleTopScanlines" :
-		{
-			"type" : "array",
-			"title" : "edt_conf_bb_subtitleTopScanlines_title",
-			"uniqueItems" : true,
-			"minItems" : 1,
-			"maxItems" : 9,
-			"items" : {
-				"type" : "integer",
-				"enum" : [10, 20, 30, 40, 50, 60, 70, 80, 90],
-				"options" : {
-					"enum_titles" : ["10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%"]
-				}
-			},
-			"default" : [10, 20, 30, 40, 50, 60, 70, 80, 90],
-			"options" : {
-				"dependencies" : { "mode" : "subtitle" }
-			},
-			"required" : true,
-			"propertyOrder" : 8
-		},
-		"subtitleBottomScanlines" :
-		{
-			"type" : "array",
-			"title" : "edt_conf_bb_subtitleBottomScanlines_title",
-			"uniqueItems" : true,
-			"minItems" : 1,
-			"maxItems" : 9,
-			"items" : {
-				"type" : "integer",
-				"enum" : [10, 20, 30, 40, 50, 60, 70, 80, 90],
-				"options" : {
-					"enum_titles" : ["10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%"]
-				}
-			},
-			"default" : [10, 90],
-			"options" : {
-				"dependencies" : { "mode" : "subtitle" }
-			},
-			"required" : true,
-			"propertyOrder" : 9
 		}
 	},
 	"additionalProperties" : false

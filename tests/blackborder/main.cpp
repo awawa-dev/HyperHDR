@@ -1,6 +1,5 @@
 #include <blackborder/BlackBorderDetector.h>
 #include <iostream>
-#include <limits>
 #include <string>
 
 namespace
@@ -57,30 +56,14 @@ int main()
 	paint(inPicture, 30, 68, 130, 73, ColorRgb::WHITE);
 	expect("subtitles within the picture", detector.process_subtitle(inPicture), 16);
 
-	detector.setSubtitleScanlines({50}, {50});
-	expect("selected bottom center is respected", detector.process_subtitle(captions), 3);
-	detector.setSubtitleScanlines({}, {});
-	expect("empty selections restore defaults", detector.process_subtitle(captions), 16);
-	detector.setSubtitleScanlines({0, -10, 35, 100, std::numeric_limits<int>::max()}, {9, 11, 95});
-	expect("invalid selections restore defaults", detector.process_subtitle(captions), 16);
-
-	// A caption can reach the default right sample. Selecting the unobstructed
-	// left sample should avoid it without requiring a change to legacy modes.
+	// Known limits: text reaching a bottom corner sample, or an overlay in the top bar,
+	// is treated as picture and makes the crop smaller.
 	auto offCenter = letterbox();
 	paint(offCenter, 30, 84, 155, 87, ColorRgb::WHITE);
-	expect("caption crossing a default scan", detector.process_subtitle(offCenter), 3);
-	detector.setSubtitleScanlines({10, 50, 90}, {10, 10});
-	expect("custom scan avoids off-center text", detector.process_subtitle(offCenter), 16);
-	expect("legacy mode keeps fixed scanlines", detector.process_letterbox(offCenter), 3);
-	detector.setSubtitleScanlines({}, {});
-
-	// Top scans remain configurable as well, for overlays close to the top edge.
+	expect("caption reaching a bottom corner sample", detector.process_subtitle(offCenter), 3);
 	auto topOverlay = letterbox();
 	paint(topOverlay, 60, 3, 100, 6, ColorRgb::WHITE);
-	expect("default top scan sees overlay", detector.process_subtitle(topOverlay), 3);
-	detector.setSubtitleScanlines({10, 90}, {10, 90});
-	expect("custom top scans avoid overlay", detector.process_subtitle(topOverlay), 16);
-	detector.setSubtitleScanlines({}, {});
+	expect("overlay in the top bar", detector.process_subtitle(topOverlay), 3);
 
 	expect("full-screen picture", detector.process_subtitle(letterbox(0, 0)), 0);
 	expect("top bar is smaller", detector.process_subtitle(letterbox(8, 16)), 8);

@@ -192,56 +192,31 @@ BlackBorder BlackBorderDetector::process_letterbox(const Image<ColorRgb>& image)
 	return detectedBorder;
 }
 
-// Accept scan positions from the 10% grid in issue #821. Invalid or empty
-// selections fall back to defaults so detection always has samples on both sides.
-void BlackBorderDetector::setSubtitleScanlines(const std::vector<int>& top, const std::vector<int>& bottom)
-{
-	auto toMask = [](const std::vector<int>& positions, uint16_t fallback) {
-		uint16_t mask = 0;
-		for (int position : positions)
-		{
-			if (position >= int(SCANLINE_SPACING) && position <= int(SCANLINE_COUNT * SCANLINE_SPACING) && position % SCANLINE_SPACING == 0)
-				mask |= 1u << (position / SCANLINE_SPACING - 1);
-		}
-		return mask ? mask : fallback;
-	};
-	_subtitleTopScanlines = toMask(top, DEFAULT_TOP_SCANLINES);
-	_subtitleBottomScanlines = toMask(bottom, DEFAULT_BOTTOM_SCANLINES);
-}
-
-// Configurable letterbox scans inspired by https://github.com/awawa-dev/HyperHDR/issues/821.
-// Bottom samples default to 10% and 90% to avoid wide centered subtitles.
-// The earliest non-black sample on either edge bounds the symmetric crop,
-// preserving the smaller border when the top and bottom bars differ.
+// Subtitle mode for letterboxed video (https://github.com/awawa-dev/HyperHDR/issues/821).
+// Subtitles are usually drawn inside the bottom bar, so the bar height is measured at the
+// top, across the whole width, and assumed to be the same at the bottom. The bottom is only
+// sampled near its corners (10% and 90%), outside centered captions, so that video with a
+// smaller bottom bar is still not cropped too much. The smaller of both bounds the crop.
 BlackBorder BlackBorderDetector::process_subtitle(const Image<ColorRgb>& image) const
 {
 	const BlackBorder unknownBorder{ true, -1, 0 };
 	if (image.width() == 0 || image.height() < 3)
 		return unknownBorder;
 
-	std::array<unsigned, SCANLINE_COUNT> topPositions{};
-	std::array<unsigned, SCANLINE_COUNT> bottomPositions{};
-	unsigned topCount = 0;
-	unsigned bottomCount = 0;
-	for (unsigned i = 0; i < SCANLINE_COUNT; ++i)
-	{
-		// Map percentages onto valid pixel indices, including very narrow images.
-		const unsigned x = uint64_t(image.width() - 1) * ((i + 1) * SCANLINE_SPACING) / 100;
-		if (_subtitleTopScanlines & (1u << i))
-			topPositions[topCount++] = x;
-		if (_subtitleBottomScanlines & (1u << i))
-			bottomPositions[bottomCount++] = x;
-	}
+	constexpr unsigned TOP_COLUMNS = 9; // 10%, 20% ... 90%
+	std::array<unsigned, TOP_COLUMNS> top{};
+	for (unsigned i = 0; i < TOP_COLUMNS; ++i)
+		top[i] = uint64_t(image.width() - 1) * ((i + 1) * 10) / 100;
+	const unsigned bottomLeft = top[0], bottomRight = top[TOP_COLUMNS - 1];
 
 	const unsigned lastRow = image.height() - 1;
 	for (unsigned y = 0; y < image.height() / 3; ++y)
 	{
-		for (unsigned i = 0; i < topCount; ++i)
-			if (!isBlack(image(topPositions[i], y)))
+		for (unsigned x : top)
+			if (!isBlack(image(x, y)))
 				return { false, int(y), 0 };
-		for (unsigned i = 0; i < bottomCount; ++i)
-			if (!isBlack(image(bottomPositions[i], lastRow - y)))
-				return { false, int(y), 0 };
+		if (!isBlack(image(bottomLeft, lastRow - y)) || !isBlack(image(bottomRight, lastRow - y)))
+			return { false, int(y), 0 };
 	}
 	return unknownBorder;
 }

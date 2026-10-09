@@ -1,5 +1,4 @@
 #include <iostream>
-#include <QJsonArray>
 
 #include <base/HyperHdrInstance.h>
 
@@ -7,21 +6,6 @@
 #include <blackborder/BlackBorderProcessor.h>
 
 using namespace hyperhdr;
-
-namespace
-{
-	// Preserve integer percentages; the detector validates the selectable grid.
-	std::vector<int> readSubtitleScanlines(const QJsonValue& value)
-	{
-		const QJsonArray values = value.toArray();
-		std::vector<int> positions;
-		positions.reserve(values.size());
-		for (const QJsonValue& position : values)
-			if (position.isDouble() && position.toDouble() == position.toInt(-1))
-				positions.push_back(position.toInt());
-		return positions;
-	}
-}
 
 BlackBorderProcessor::BlackBorderProcessor(HyperHdrInstance* hyperhdr, QObject* parent)
 	: QObject(parent)
@@ -201,6 +185,10 @@ bool BlackBorderProcessor::process(const Image<ColorRgb>& image)
 	}
 	else if (_detectionMode == "subtitle") {
 		imageBorder = _borderDetector->process_subtitle(image);
+		// A frame too dark to measure does not contradict known bars: keep the crop instead of
+		// counting towards an unknown border, so dark scenes don't expose subtitles in the bar.
+		if (imageBorder.unknown && !_currentBorder.unknown)
+			return false;
 	}
 	// add blur to the border
 	if (imageBorder.horizontalSize > 0)
@@ -229,13 +217,12 @@ void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJson
 		_detectionMode = obj["mode"].toString("default");
 		const double newThreshold = obj["threshold"].toDouble(5.0) / 100.0;
 
-		if (_oldThreshold != newThreshold || !_borderDetector)
+		if (_oldThreshold != newThreshold)
 		{
 			_oldThreshold = newThreshold;
 
 			_borderDetector = std::make_unique<BlackBorderDetector>(newThreshold);
 		}
-		_borderDetector->setSubtitleScanlines(readSubtitleScanlines(obj["subtitleTopScanlines"]), readSubtitleScanlines(obj["subtitleBottomScanlines"]));
 
 		Info("BLACKBORDER", "Set mode to: {:s}", (_detectionMode));
 
