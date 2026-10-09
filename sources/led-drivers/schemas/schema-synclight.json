@@ -1,0 +1,54 @@
+{
+	"type": "object",
+	"required": true,
+	"properties": {
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_outputPath_title",
+			"default":"auto",
+			"propertyOrder" : 1
+		},
+		"brightness": {
+			"type": "integer",
+			"title": "edt_conf_color_brightness_title",
+			"default": 255,
+			"minimum": 0,
+			"maximum": 255,
+			"propertyOrder": 2
+		},
+		"outputMode": {
+			"type": "string",
+			"title": "remote_maptype_label",
+			"required": true,
+			"enum": [
+				"global",
+				"segments"
+			],
+			"default": "segments",
+			"options": {
+				"enum_titles": [
+					"remote_maptype_label_unicolor_mean",
+					"remote_maptype_label_multicolor_mean"					
+				]
+			},
+			"propertyOrder": 3
+		},
+		"controllerLedCount": {
+			"type": "integer",
+			"title": "edt_dev_general_hardwareLedCount_title",
+			"default": 0,
+			"minimum": 0,
+			"maximum": 254,
+			"propertyOrder": 4
+		},
+		"controllerSegmentLimit": {
+			"type": "integer",
+			"title": "edt_dev_spec_maxPacket_title",
+			"default": 34,
+			"minimum": 1,
+			"maximum": 254,
+			"propertyOrder": 5
+		}
+	},
+	"additionalProperties": true
+}

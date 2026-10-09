@@ -885,7 +885,7 @@ $(document).ready(function()
 			const wizardFn = 'startWizard' + ledType.charAt(0).toUpperCase() + ledType.slice(1);
 			changeWizard(data, wizardTitle, window[wizardFn]);
 		}
-		else if (["wled", "hyperk"].includes(ledType) || selectedLedGroup == "leds_group_0_SPI" || selectedLedGroup == "leds_group_3_serial")
+		else if (["wled", "hyperk"].includes(ledType) || selectedLedGroup == "leds_group_0_SPI" || selectedLedGroup == "leds_group_3_serial" || selectedLedGroup == "leds_group_6_HID")
 		{					
 			let selectorControl = $("<select id=\"deviceListInstances\" />");
 			let targetControl = 'output';
@@ -897,7 +897,7 @@ $(document).ready(function()
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.host',`select_${ledType}_intro`,`select_network_rescan`));
 				targetControl = 'host';
 			}
-			else if (selectedLedGroup == "leds_group_3_serial")
+			else if (selectedLedGroup == "leds_group_3_serial" || selectedLedGroup == "leds_group_6_HID")
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.output','edt_dev_spec_outputPath_title'));
 			else if (selectedLedGroup == "leds_group_0_SPI")
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.output', 'edt_dev_spec_spipath_title'));
@@ -927,10 +927,12 @@ $(document).ready(function()
 	if (window.serverConfig.device.type == "philipshueentertainment") window.serverConfig.device.type = "philipshue";
 
 	// create led device selection
+	const debugDriver = "leds_group_5_debug";
 	let ledDevices = window.serverInfo.ledDevices.available;
 	let ledGroups = ledDevices.map(a => a.group).sort().filter(function(value, index, array) {
-		return (index === 0) || (value !== array[index-1]);
+		return ((index === 0) || (value !== array[index-1])) && value != debugDriver;
 	});
+	ledGroups.push(debugDriver);
 
 	ledGroups.forEach((group) => {
 		let elemsInGroups = Array();

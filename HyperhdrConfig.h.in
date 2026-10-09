@@ -60,6 +60,9 @@
 // Define to enable the ws281x-pwm-via-dma-device using jgarff's library
 #cmakedefine ENABLE_WS281XPWM
 
+// Define to enable HID devices
+#cmakedefine ENABLE_HID
+
 // Define to enable systray control
 #cmakedefine ENABLE_SYSTRAY
 
