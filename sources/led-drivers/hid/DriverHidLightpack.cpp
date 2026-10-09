@@ -1,17 +1,10 @@
-/*
- * Copyright © 2026 Mark Pustjens
- * Written by Mark Pustjens <pustjens@dds.nl>
- */
-
 #include <led-drivers/hid/DriverHidLightpack.h>
 #include <linalg.h>
 
 #ifndef PCH_ENABLED
-	#include <QJsonArray>
-	#include <QJsonDocument>
+	#include <QJsonObject>
 	#include <algorithm>
 	#include <cmath>
-	#include <set>
 #endif
 
 namespace
@@ -26,311 +19,154 @@ namespace
 	constexpr size_t BYTES_PER_LED = 6;
 	constexpr std::array<size_t, LEDS_PER_DEVICE> LED_REMAP = { 4, 3, 0, 1, 2, 5, 6, 7, 8, 9 };
 
-	struct LightpackDescriptor
+	bool isCurrentLightpack(const ProviderHid::HidDeviceInfo& device)
 	{
-		std::string path;
-		QString serial;
-		uint16_t vendorId;
-		uint16_t productId;
-	};
-
-	inline bool ensureHidInitialized()
-	{
-		return hid_init() == 0;
+		return device.vendorId == LIGHTPACK_VENDOR_ID && device.productId == LIGHTPACK_PRODUCT_ID;
 	}
 
-	QString fromWide(const wchar_t* value)
+	bool isOldLightpack(const ProviderHid::HidDeviceInfo& device)
 	{
-		if (value == nullptr) {
-			return {};
-		}
-		return QString::fromWCharArray(value);
-	}
-
-	QString hidError(hid_device* handle)
-	{
-		const wchar_t* error = hid_error(handle);
-
-		if (error == nullptr) {
-			return QStringLiteral("unknown HID error");
-		}
-
-		return QString::fromWCharArray(error);
-	}
-
-	void appendDescriptors(
-			std::vector<LightpackDescriptor>& result,
-			std::set<std::string>& paths,
-			uint16_t vendorId,
-			uint16_t productId)
-	{
-		std::vector<LightpackDescriptor> found;
-		hid_device_info* devices = hid_enumerate(vendorId, productId);
-
-		for (hid_device_info* current = devices; current != nullptr; current = current->next)
-		{
-			if (current->path == nullptr || current->interface_number > 0 || !paths.insert(current->path).second) {
-				continue;
-			}
-
-			found.push_back({ current->path, fromWide(current->serial_number), vendorId, productId });
-		}
-		hid_free_enumeration(devices);
-
-		std::sort(found.begin(), found.end(), [](const LightpackDescriptor& left, const LightpackDescriptor& right)
-		{
-			if (left.serial.isEmpty() != right.serial.isEmpty()) {
-				return !left.serial.isEmpty();
-			}
-
-			if (left.serial.isEmpty()) {
-				return left.path < right.path;
-			}
-
-			return left.serial < right.serial;
-		});
-
-		result.insert(result.end(), found.begin(), found.end());
-	}
-
-	std::vector<LightpackDescriptor> enumerateLightpacks()
-	{
-		std::vector<LightpackDescriptor> result;
-		if (!ensureHidInitialized()) {
-			return result;
-		}
-
-		std::set<std::string> paths;
-		appendDescriptors(result, paths, LIGHTPACK_VENDOR_ID, LIGHTPACK_PRODUCT_ID);
-		appendDescriptors(result, paths, LIGHTPACK_OLD_VENDOR_ID, LIGHTPACK_OLD_PRODUCT_ID);
-		return result;
-	}
-
-	std::array<uint16_t, 3> reorderColor(std::array<uint16_t, 3> color, LedString::ColorOrder order)
-	{
-		switch (order)
-		{
-			case LedString::ColorOrder::ORDER_RBG:
-				return { color[0], color[2], color[1] };
-			case LedString::ColorOrder::ORDER_GRB:
-				return { color[1], color[0], color[2] };
-			case LedString::ColorOrder::ORDER_BRG:
-				return { color[2], color[0], color[1] };
-			case LedString::ColorOrder::ORDER_GBR:
-				return { color[1], color[2], color[0] };
-			case LedString::ColorOrder::ORDER_BGR:
-				return { color[2], color[1], color[0] };
-			case LedString::ColorOrder::ORDER_RGB:
-				return color;
-		}
-		return color;
+		return device.vendorId == LIGHTPACK_OLD_VENDOR_ID && device.productId == LIGHTPACK_OLD_PRODUCT_ID;
 	}
 }
 
 DriverHidLightpack::DriverHidLightpack(const QJsonObject& deviceConfig)
-	: LedDevice(deviceConfig)
-	, serial(QStringLiteral("all"))
+	: ProviderHid(deviceConfig)
 {
-}
-
-DriverHidLightpack::~DriverHidLightpack()
-{
-	close();
 }
 
 bool DriverHidLightpack::init(QJsonObject deviceConfig)
 {
-	if (!LedDevice::init(deviceConfig)) {
+	if (!ProviderHid::init(deviceConfig)) {
 		return false;
 	}
 
-	serial = deviceConfig["serial"].toString(QStringLiteral("all")).trimmed();
+	_output = deviceConfig["output"].toString(deviceConfig["path"].toString("auto")).trimmed();
 
-	if (serial.isEmpty()) {
-		serial = QStringLiteral("all");
+	// ProviderHid opens at most _maxDevices: as many chained Lightpacks as the LED count needs
+	_maxDevices = std::max<size_t>(1, (static_cast<size_t>(_ledCount) + LEDS_PER_DEVICE - 1) / LEDS_PER_DEVICE);
+
+	Debug(_log, "DeviceType: {:s}, LedCount: {:d}, HID output: {:s}, devices needed: {:d}",
+		this->getActiveDeviceType(), this->getLedCount(), _output, static_cast<int>(_maxDevices));
+
+	return true;
+}
+
+bool DriverHidLightpack::initDevice()
+{
+	const size_t devices = deviceCount();
+
+	if (static_cast<size_t>(_ledCount) > devices * LEDS_PER_DEVICE)
+	{
+		Error(_log, "Configured for {:d} LEDs, but {:d} Lightpack device(s) provide only {:d}",
+			static_cast<int>(_ledCount), static_cast<int>(devices), static_cast<int>(devices * LEDS_PER_DEVICE));
+		return false;
 	}
 
-	if (!ensureHidInitialized()) {
-		Error(_log, "Could not initialize hidapi");
-		return false;
+	// switch off the smoothing of the device itself
+	Command cmd{};
+	cmd[1] = CMD_SET_SMOOTH_SLOWDOWN;
+	for (size_t index = 0; index < devices; ++index)
+	{
+		if (!writeReport(cmd.data(), cmd.size(), index))
+		{
+			Error(_log, "Could not configure Lightpack {:s}", describeDevice(index));
+			return false;
+		}
+	}
+
+	QString pluralSuffix;
+	if (devices != 1) {
+		pluralSuffix = QStringLiteral("s");
+	}
+
+	_customInfo = QString(" (%1 device%2)").arg(devices).arg(pluralSuffix);
+	Info(_log, "Opened {:d} Lightpack device(s) for {:d} LEDs", static_cast<int>(devices), static_cast<int>(_ledCount));
+
+	for (size_t index = 0; index < devices; ++index) {
+		Info(_log, "Lightpack {:d}: {:s}", static_cast<int>(index + 1), describeDevice(index));
 	}
 
 	return true;
 }
 
-int DriverHidLightpack::open()
+std::vector<ProviderHid::HidDeviceInfo> DriverHidLightpack::selectDevices(std::vector<HidDeviceInfo> found)
 {
-	close();
-	const auto descriptors = enumerateLightpacks();
-
-	for (const auto& descriptor : descriptors)
-	{
-		if (serial != QStringLiteral("all") && descriptor.serial != serial) {
-			continue;
-		}
-
-		hid_device* handle = hid_open_path(descriptor.path.c_str());
-		if (handle == nullptr) {
-			setInError(QString("Could not open Lightpack %1: %2").arg(descriptor.serial, hidError(nullptr)));
-			setupRetry(2500);
-			return -1;
-		}
-
-		devices.push_back({
-				handle,
-				descriptor.serial,
-				descriptor.path
-		});
-	}
-
-	if (devices.empty())
-	{
-		if (serial == QStringLiteral("all")) {
-			setInError(QStringLiteral("No Lightpack devices were found"));
-		} else {
-			setInError(QString("Lightpack with serial %1 was not found").arg(serial));
-		}
-
-		setupRetry(2500);
-		return -1;
-	}
-
-	if (_ledCount > devices.size() * LEDS_PER_DEVICE)
-	{
-		setInError(QString("Configured for %1 LEDs, but %2 Lightpack device(s) provide only %3")
-				.arg(_ledCount)
-				.arg(devices.size())
-				.arg(devices.size() * LEDS_PER_DEVICE)
-		);
-
-		if (serial == QStringLiteral("all")) {
-			setupRetry(2500);
-		}
-
-		return -1;
-	}
-
-	Command cmd{};
-	cmd[1] = CMD_SET_SMOOTH_SLOWDOWN;
-	QString error;
-	for (const auto& device : devices)
-	{
-		if (!sendCommand(device, cmd, error))
+	found.erase(
+		std::remove_if(found.begin(), found.end(), [](const HidDeviceInfo& device)
 		{
-			setInError(QString("Could not configure Lightpack %1: %2").arg(device.serial, error));
-			setupRetry(2500);
-			return -1;
-		}
-	}
+			return !isCurrentLightpack(device) && !isOldLightpack(device);
+		}),
+		found.end());
 
-	_isDeviceReady = true;
-
-	QString pluralSuffix;
-	if (devices.size() != 1) {
-		pluralSuffix = QStringLiteral("s");
-	}
-
-	_customInfo = QString(" (%1 device%2)").arg(devices.size()).arg(pluralSuffix);
-	Info(_log, "Opened {:d} Lightpack device(s) for {:d} LEDs", devices.size(), _ledCount);
-
-	for (size_t index = 0; index < devices.size(); ++index) {
-		Info(_log, "Lightpack {:d}: serial {:s}", index + 1, devices[index].serial);
-	}
-
-	return 0;
+	return found;
 }
 
-int DriverHidLightpack::close()
+std::vector<ProviderHid::HidDeviceInfo> DriverHidLightpack::devicesToOpen(std::vector<HidDeviceInfo> supported)
 {
-	_isDeviceReady = false;
+	// a single device picked by its HID path
+	const auto chosen = std::find_if(supported.begin(), supported.end(), [this](const HidDeviceInfo& device) { return device.path == _output; });
+	if (chosen != supported.end()) {
+		return std::vector<HidDeviceInfo>{ *chosen };
+	}
 
-	for (const auto& device : devices)
+	// The order of the devices is the order of the LEDs of the strip: current Lightpacks before the old ones,
+	// then by serial number (devices without a serial number last, by path)
+	std::sort(supported.begin(), supported.end(), [](const HidDeviceInfo& left, const HidDeviceInfo& right)
 	{
-		if (device.handle != nullptr) {
-			hid_close(device.handle);
+		if (isCurrentLightpack(left) != isCurrentLightpack(right)) {
+			return isCurrentLightpack(left);
 		}
-	}
 
-	devices.clear();
-
-	return 0;
-}
-
-bool DriverHidLightpack::powerOff()
-{
-	if (devices.empty()) {
-		return true;
-	}
-
-	Command cmd{};
-	cmd[1] = CMD_UPDATE_LEDS;
-	QString error;
-	bool success = true;
-
-	for (const auto& device : devices) {
-		if (!sendCommand(device, cmd, error)) {
-			Error(_log, "Could not power off Lightpack {:s}: {:s}", device.serial, error);
-			success = false;
+		if (left.serial.isEmpty() != right.serial.isEmpty()) {
+			return !left.serial.isEmpty();
 		}
-	}
-	return success;
-}
 
-int DriverHidLightpack::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
-{
-	std::vector<DeepColor> colors;
-	colors.reserve(ledValues.size());
+		if (left.serial != right.serial) {
+			return left.serial < right.serial;
+		}
 
-	for (const auto& color : ledValues)
-	{
-		colors.push_back(reorderColor({
-			static_cast<uint16_t>((color.red << 4) | (color.red >> 4)),
-			static_cast<uint16_t>((color.green << 4) | (color.green >> 4)),
-			static_cast<uint16_t>((color.blue << 4) | (color.blue >> 4))
-		}, _colorOrder));
-	}
+		return left.path < right.path;
+	});
 
-	return writeColors(colors);
+	return supported;
 }
 
 std::pair<bool, int> DriverHidLightpack::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
 {
-	const auto normalizeTo12Bit = [](float value) -> uint16_t {
-		if (!std::isfinite(value)) {
-			return 0;
-		}
-		// 4095 is the maximum unsigned 12-bit value (2^12 - 1).
-		return static_cast<uint16_t>(std::lround(std::clamp(value, 0.0f, 1.0f) * 4095.0f));
-	};
+	if (nonlinearRgbColors->empty())
+	{
+		return { true, 0 };
+	}
 
 	std::vector<DeepColor> colors;
 	colors.reserve(nonlinearRgbColors->size());
+
 	for (const auto& color : *nonlinearRgbColors)
 	{
-		colors.push_back(reorderColor({
-			normalizeTo12Bit(color.x),
-			normalizeTo12Bit(color.y),
-			normalizeTo12Bit(color.z)
-		}, _colorOrder));
+		// 0.0-1.0 to 12bits
+		colors.push_back(static_cast<DeepColor>(linalg::round(linalg::clamp(color, 0.0f, 1.0f) * 4095.0f)));
 	}
+
 	return { true, writeColors(colors) };
 }
 
 int DriverHidLightpack::writeColors(const std::vector<DeepColor>& ledValues)
 {
-	if (ledValues.size() > (devices.size() * LEDS_PER_DEVICE))
+	const size_t devices = deviceCount();
+
+	if (ledValues.size() > (devices * LEDS_PER_DEVICE))
 	{
 		setInError(QString("Received %1 LED colors, but the connected Lightpacks support only %2")
 				.arg(ledValues.size())
-				.arg(devices.size() * LEDS_PER_DEVICE)
+				.arg(devices * LEDS_PER_DEVICE)
 		);
 		return -1;
 	}
 
-	QString error;
-	for (size_t deviceIndex = 0; deviceIndex < devices.size(); ++deviceIndex)
+	for (size_t deviceIndex = 0; deviceIndex < devices; ++deviceIndex)
 	{
-		Command cmd{};
+		Command cmd{}; // cmd[0] is the report ID (0)
 		cmd[1] = CMD_UPDATE_LEDS;
 
 		for (size_t led = 0; led < LEDS_PER_DEVICE; ++led)
@@ -350,10 +186,9 @@ int DriverHidLightpack::writeColors(const std::vector<DeepColor>& ledValues)
 			cmd[offset+5] = static_cast<uint8_t>(color[2] & 0x0f);
 		}
 
-		if (!sendCommand(devices[deviceIndex], cmd, error))
+		if (!writeReport(cmd.data(), cmd.size(), deviceIndex))
 		{
-			const QString deviceSerial = devices[deviceIndex].serial;
-			setInError(QString("Could not write to Lightpack %1: %2").arg(deviceSerial, error));
+			setInError(QString("Could not write to Lightpack %1").arg(describeDevice(deviceIndex)));
 			setupRetry(2500);
 			return -1;
 		}
@@ -362,87 +197,23 @@ int DriverHidLightpack::writeColors(const std::vector<DeepColor>& ledValues)
 	return 0;
 }
 
-bool DriverHidLightpack::sendCommand(const Device& device, const Command& cmd, QString& error) const
+QString DriverHidLightpack::describeDevice(size_t index) const
 {
-	const int written = hid_send_output_report(device.handle, cmd.data(), cmd.size());
+	const HidDeviceInfo& device = deviceInfo(index);
 
-	if (written != static_cast<int>(cmd.size())) {
-		error = hidError(device.handle);
-		return false;
+	if (device.serial.isEmpty()) {
+		return device.path;
 	}
-	return true;
-}
 
-void DriverHidLightpack::setInError(const QString& errorMsg)
-{
-	close();
-	LedDevice::setInError(errorMsg);
-}
-
-QJsonObject DriverHidLightpack::discover(const QJsonObject& /*params*/)
-{
-	QJsonArray deviceList;
-	const auto descriptors = enumerateLightpacks();
-
-	if (!descriptors.empty())
+	// interfaces of one composite device share the serial number: the path tells them apart
+	for (size_t other = 0; other < deviceCount(); ++other)
 	{
-		deviceList.push_back(QJsonObject{
-			{
-				"value",
-				"all"
-			},
-			{
-				"name",
-				QString("All detected Lightpacks (%1 devices, %2 LEDs)")
-					.arg(descriptors.size())
-					.arg(descriptors.size() * LEDS_PER_DEVICE)
-			}
-		});
+		if (other != index && deviceInfo(other).serial == device.serial) {
+			return QString("%1 (%2)").arg(device.serial, device.path);
+		}
 	}
 
-	for (const auto& descriptor : descriptors)
-	{
-		QString value = descriptor.serial;
-		if (value.isEmpty()) {
-			value = QString::fromStdString(descriptor.path);
-		}
-
-		deviceList.push_back(QJsonObject{
-			{
-				"value",
-				value
-			},
-			{
-				"name",
-				QString("Lightpack %1 (%2:%3)")
-					.arg(value)
-					.arg(descriptor.vendorId, 4, 16, QLatin1Char('0'))
-					.arg(descriptor.productId, 4, 16, QLatin1Char('0')) },
-			{
-				"serialNumber",
-				descriptor.serial
-			},
-			{
-				"path",
-				QString::fromStdString(descriptor.path)
-			}
-		});
-	}
-
-	QJsonObject result{
-		{
-			"ledDeviceType",
-			_activeDeviceType
-		},
-		{
-			"devices",
-			deviceList
-		}
-	};
-
-	Debug(_log, "Lightpack devices discovered: [{:s}]", QString(QJsonDocument(result).toJson(QJsonDocument::Compact)));
-
-	return result;
+	return device.serial;
 }
 
 LedDevice* DriverHidLightpack::construct(const QJsonObject& deviceConfig)
@@ -450,8 +221,4 @@ LedDevice* DriverHidLightpack::construct(const QJsonObject& deviceConfig)
 	return new DriverHidLightpack(deviceConfig);
 }
 
-bool DriverHidLightpack::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE(
-		"lightpack",
-		"leds_group_3_serial",
-		DriverHidLightpack::construct
-	);
+bool DriverHidLightpack::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("lightpack", "leds_group_6_HID", DriverHidLightpack::construct);

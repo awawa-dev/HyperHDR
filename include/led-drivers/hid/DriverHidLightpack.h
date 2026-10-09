@@ -1,29 +1,22 @@
-/*
- * Copyright © 2026 Mark Pustjens
- * Written by Mark Pustjens <pustjens@dds.nl>
- */
-
 #pragma once
 
 #ifndef PCH_ENABLED
 	#include <QString>
 	#include <array>
 	#include <cstdint>
-	#include <string>
+	#include <utility>
 	#include <vector>
 #endif
 
-#include <hidapi.h>
-#include <led-drivers/LedDevice.h>
+#include <led-drivers/hid/ProviderHid.h>
 
 /* LED device driver for one or more USB HID Lightpack devices.
  *
- * Based on the original driver that was part of the now-defunct
- * Prismatik software.
- *
- * See https://github.com/psieg/Lightpack
+ * Enumerating, opening, closing and writing HID reports is done by
+ * ProviderHid. Chained Lightpacks form
+ * one strip: 10 LEDs per device, devices ordered by serial number.
  */
-class DriverHidLightpack : public LedDevice
+class DriverHidLightpack : public ProviderHid
 {
 public:
 
@@ -34,10 +27,6 @@ public:
 	explicit DriverHidLightpack(const QJsonObject& deviceConfig);
 
 
-	/* Destructor. */
-	~DriverHidLightpack() override;
-
-
 	/* Construct a `DriverHidLightpack` instance.
 	 *
 	 * @param[in] deviceConfig Device configuration.
@@ -46,17 +35,9 @@ public:
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 
-	/* Discovers connected Lightpack devices.
-	 *
-	 * @param[in] params Discovery parameters.
-	 * @returns JSON description of the discovered devices.
-	 */
-	QJsonObject discover(const QJsonObject& params) override;
-
-
 protected:
 
-	/* Initializes the Lightpack configuration and HID library.
+	/* Reads the Lightpack configuration and decides how many devices are needed.
 	 *
 	 * @param[in] deviceConfig Device configuration.
 	 * @returns True on success, false otherwise.
@@ -64,37 +45,14 @@ protected:
 	bool init(QJsonObject deviceConfig) override;
 
 
-	/* Opens the configured Lightpack devices.
+	/* Called by ProviderHid right after the devices were opened.
 	 *
-	 * @returns 0 on success, negative otherwise.
+	 * Checks that enough Lightpacks were found for the configured LED count
+	 * and switches off their built-in smoothing.
+	 *
+	 * @returns True on success, false otherwise.
 	 */
-	int open() override;
-
-
-	/* Closes all open Lightpack devices.
-	 *
-	 * @returns Zero on success.
-	 */
-	int close() override;
-
-
-	/* Turns off every LED on each open Lightpack device.
-	 *
-	 * @returns True on success, otherwise false.
-	 */
-	bool powerOff() override;
-
-
-	/* Send new colors to the device.
-	 *
-	 * For the Lightpack device, this converts 8-bit RGB values
-	 * to 12-bit values and writes them to the devices.
-	 *
-	 * @param[in] ledValues RGB color for each LED.
-	 * @returns Zero on success, otherwise negative.
-	 */
-	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
-
+	bool initDevice() override;
 
 	/* Send new colors to the device.
 	 *
@@ -107,33 +65,42 @@ protected:
 	std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors) override;
 
 
-	/* Close all devices, then set the driver error state.
+	/* Keeps the HID devices that are Lightpacks
 	 *
-	 * @param[in] errorMsg Error description.
+	 * @param[in] found Every HID device present in the system.
+	 * @returns The supported Lightpack devices.
 	 */
-	void setInError(const QString& errorMsg) override;
+	std::vector<HidDeviceInfo> selectDevices(std::vector<HidDeviceInfo> found) override;
+
+
+	/* Chooses the Lightpacks to open and their order, which is the order of the LEDs.
+	 *
+	 * The device whose HID path is set in "output" wins. Otherwise every Lightpack
+	 * ordered by serial number and by path.
+	 *
+	 * @param[in] supported Result of selectDevices().
+	 * @returns The devices to open.
+	 */
+	std::vector<HidDeviceInfo> devicesToOpen(std::vector<HidDeviceInfo> supported) override;
 
 
 private:
 
-	/* Type to hold identifying information of a Lightpack device. */
-	struct Device
-	{
-		/* Native HID device handle. */
-		hid_device* handle;
-
-		/* Device serial number. */
-		QString serial;
-
-		/* Platform-specific HID path. */
-		std::string path;
-	};
-
 	/* A 12-bit RGB color stored in 16-bit channels. */
-	using DeepColor = std::array<uint16_t, 3>;
+	using DeepColor = linalg::vec<uint16_t, 3>;
 
-	/* A fixed-size Lightpack HID command. */
+	/* A fixed-size Lightpack HID command: report ID, command, 64 data bytes. */
 	using Command = std::array<uint8_t, 65>;
+
+
+	/* Human readable name of an opened device for the logs: its serial number,
+	 * with the HID path added when another opened device shares that serial
+	 * (interfaces of one composite device), or the path alone without a serial.
+	 *
+	 * @param[in] index Index of the opened device.
+	 * @returns The name.
+	 */
+	QString describeDevice(size_t index) const;
 
 
 	/* Writes 12-bit RGB values across the open Lightpack devices.
@@ -144,22 +111,8 @@ private:
 	int writeColors(const std::vector<DeepColor>& ledValues);
 
 
-	/* Sends a command to a Lightpack device.
-	 *
-	 * @param[in] device Lightpack device.
-	 * @param[in] command Command to send.
-	 * @param[out] error Error description when sending fails.
-	 * @returns True when the complete command was written, otherwise false.
-	 */
-	bool sendCommand(const Device& device, const Command& command, QString& error) const;
-
-
-	/* Configured serial number, or "all" to use every discovered device. */
-	QString serial;
-
-
-	/* List of open Lightpack devices. */
-	std::vector<Device> devices;
+	/* Configured HID path of a single Lightpack, or "auto". */
+	QString _output;
 
 
 	/* Use to register this driver with the LED device factory. */
