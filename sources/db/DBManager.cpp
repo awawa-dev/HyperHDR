@@ -48,7 +48,6 @@ DBManager::DBManager()
 	: _log("DB")
 	, _readonlyMode(false)
 {
-
 }
 
 DBManager::~DBManager()
@@ -111,15 +110,15 @@ bool DBManager::createRecord(const VectorPair& conditions, const QVariantMap& co
 	QVariantList cValues;
 	QStringList prep;
 	QStringList placeh;
+
 	// prep merge columns & condition
-	QVariantMap::const_iterator i = columns.constBegin();
-	while (i != columns.constEnd()) {
+	for (auto i = columns.constBegin(); i != columns.constEnd(); ++i)
+	{
 		prep.append(i.key());
 		cValues += i.value();
 		placeh.append("?");
-
-		++i;
 	}
+
 	for (const auto& pair : conditions)
 	{
 		// remove the condition statements
@@ -128,14 +127,18 @@ bool DBManager::createRecord(const VectorPair& conditions, const QVariantMap& co
 		cValues << pair.second;
 		placeh.append("?");
 	}
-	query.prepare(QString("INSERT INTO %1 ( %2 ) VALUES ( %3 )").arg(_table, prep.join(", ")).arg(placeh.join(", ")));
+
+	query.prepare(QString("INSERT INTO %1 ( %2 ) VALUES ( %3 )").arg(_table).arg(prep.join(", ")).arg(placeh.join(", ")));
+
 	// add column & condition values
 	doAddBindValue(query, cValues);
+
 	if (!query.exec())
 	{
 		Error(_log, "Failed to create record: '{:s}' in table: '{:s}' Error: {:s}", (prep.join(", ")), (_table), (idb->error()));
 		return false;
 	}
+
 	return true;
 }
 
@@ -156,20 +159,18 @@ bool DBManager::recordExists(const VectorPair& conditions) const
 		prepCond << pair.first + "=?";
 		bindVal << pair.second;
 	}
-	query.prepare(QString("SELECT * FROM %1 %2").arg(_table, prepCond.join(" ")));
+
+	query.prepare(QString("SELECT 1 FROM %1 %2 LIMIT 1").arg(_table).arg(prepCond.join(" ")));
+
 	doAddBindValue(query, bindVal);
+
 	if (!query.exec())
 	{
 		Error(_log, "Failed recordExists(): '{:s}' in table: '{:s}' Error: {:s}", (prepCond.join(" ")), (_table), (idb->error()));
 		return false;
 	}
 
-	int entry = 0;
-	while (query.next()) {
-		entry++;
-	}
-
-	return entry != 0;
+	return query.next();
 }
 
 bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& columns) const
@@ -180,26 +181,25 @@ bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& co
 	}
 
 	SqlDatabase* idb = getDB();
+
 	if (idb->transaction())
 	{
-
 		SqlQuery query(idb);
 
 		QVariantList values;
 		QStringList prep;
 
-		// prepare columns valus
-		QVariantMap::const_iterator i = columns.constBegin();
-		while (i != columns.constEnd()) {
+		// prepare columns values
+		for (auto i = columns.constBegin(); i != columns.constEnd(); ++i)
+		{
 			prep += i.key() + "=?";
 			values += i.value();
-
-			++i;
 		}
 
 		// prepare condition values
 		QStringList prepCond;
 		QVariantList prepBindVal;
+
 		if (!conditions.isEmpty())
 			prepCond << "WHERE";
 
@@ -209,11 +209,13 @@ bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& co
 			prepBindVal << pair.second;
 		}
 
-		query.prepare(QString("UPDATE %1 SET %2 %3").arg(_table, prep.join(", ")).arg(prepCond.join(" ")));
+		query.prepare(QString("UPDATE %1 SET %2 %3").arg(_table).arg(prep.join(", ")).arg(prepCond.join(" ")));
 		// add column values
 		doAddBindValue(query, values);
+
 		// add condition values
 		doAddBindValue(query, prepBindVal);
+
 		if (!query.exec())
 		{
 			Error(_log, "Failed to update record: '{:s}' in table: '{:s}' Error: {:s}", (prepCond.join(" ")), (_table), (idb->error()));
@@ -230,6 +232,7 @@ bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& co
 	if (!idb->commit())
 	{
 		Error(_log, "Could not commit the DB transaction. Error: {:s}", (idb->error()));
+		return false;
 	}
 
 	return true;
@@ -244,15 +247,17 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 	if (!tColumns.isEmpty())
 		sColumns = tColumns.join(", ");
 
-	QString sOrder("");
+	QString sOrder;
 	if (!tOrder.isEmpty())
 	{
 		sOrder = " ORDER BY ";
 		sOrder.append(tOrder.join(", "));
 	}
+
 	// prep conditions
 	QStringList prepCond;
 	QVariantList bindVal;
+
 	if (!conditions.isEmpty())
 		prepCond << " WHERE";
 
@@ -261,7 +266,7 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 		prepCond << pair.first + "=?";
 		bindVal << pair.second;
 	}
-	query.prepare(QString("SELECT %1 FROM %2%3%4").arg(sColumns, _table).arg(prepCond.join(" ")).arg(sOrder));
+	query.prepare(QString("SELECT %1 FROM %2%3%4").arg(sColumns).arg(_table).arg(prepCond.join(" ")).arg(sOrder));
 	doAddBindValue(query, bindVal);
 
 	if (!query.exec())
@@ -270,11 +275,13 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 		return false;
 	}
 
-	// go to first row
-	query.next();
+	// No matching row.
+	if (!query.next())
+		return false;
 
 	SqlRecord rec = query.record();
-	for (int i = 0; i < static_cast<int>(rec.count()); i++)
+
+	for (int i = 0; i < static_cast<int>(rec.count()); ++i)
 	{
 		results[rec.fieldName(i)] = rec.value(i);
 	}
@@ -291,14 +298,14 @@ bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tCo
 	if (!tColumns.isEmpty())
 		sColumns = tColumns.join(", ");
 
-	QString sOrder("");
+	QString sOrder;
 	if (!tOrder.isEmpty())
 	{
 		sOrder = " ORDER BY ";
 		sOrder.append(tOrder.join(", "));
 	}
 
-	query.prepare(QString("SELECT %1 FROM %2%3").arg(sColumns, _table, sOrder));
+	query.prepare(QString("SELECT %1 FROM %2%3").arg(sColumns).arg(_table).arg(sOrder));
 
 	if (!query.exec())
 	{
@@ -311,16 +318,17 @@ bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tCo
 	{
 		QVariantMap entry;
 		SqlRecord rec = query.record();
-		for (int i = 0; i < static_cast<int>(rec.count()); i++)
+
+		for (int i = 0; i < static_cast<int>(rec.count()); ++i)
 		{
 			entry[rec.fieldName(i)] = rec.value(i);
 		}
+
 		results.append(entry);
 	}
 
 	return true;
 }
-
 
 bool DBManager::deleteRecord(const VectorPair& conditions) const
 {
@@ -350,15 +358,18 @@ bool DBManager::deleteRecord(const VectorPair& conditions) const
 			bindValues << pair.second;
 		}
 
-		query.prepare(QString("DELETE FROM %1 %2").arg(_table, prepCond.join(" ")));
+		query.prepare(QString("DELETE FROM %1 %2").arg(_table).arg(prepCond.join(" ")));
 		doAddBindValue(query, bindValues);
+
 		if (!query.exec())
 		{
 			Error(_log, "Failed to delete record: '{:s}' in table: '{:s}' Error: {:s}", (prepCond.join(" ")), (_table), (idb->error()));
 			return false;
 		}
+
 		return true;
 	}
+
 	return false;
 }
 
@@ -376,32 +387,37 @@ bool DBManager::createTable(QStringList& columns) const
 	}
 
 	SqlDatabase* idb = getDB();
+
 	// create table if required
 	SqlQuery query(idb);
+
 	if (!tableExists(_table))
 	{
 		// empty tables aren't supported by sqlite, add one column
 		QString tcolumn = columns.takeFirst();
+
 		// default CURRENT_TIMESTAMP is not supported by ALTER TABLE
-		if (!query.exec(QString("CREATE TABLE %1 ( %2 )").arg(_table, tcolumn)))
+		if (!query.exec(QString("CREATE TABLE %1 ( %2 )").arg(_table).arg(tcolumn)))
 		{
 			Error(_log, "Failed to create table: '{:s}' Error: {:s}", (_table), (idb->error()));
 			return false;
 		}
 	}
+
 	// create columns if required
 	int errors = 0;
+
 	for (const auto& column : columns)
 	{
 		QString columnName = column.split(' ').at(0);
+
 		if (!idb->doesColumnExist(_table, columnName))
 		{
 			if (!createColumn(column))
-			{
 				errors++;
-			}
 		}
 	}
+
 	return errors == 0;
 }
 
@@ -414,11 +430,13 @@ bool DBManager::createColumn(const QString& column) const
 
 	SqlDatabase* idb = getDB();
 	SqlQuery query(idb);
-	if (!query.exec(QString("ALTER TABLE %1 ADD COLUMN %2").arg(_table, column)))
+
+	if (!query.exec(QString("ALTER TABLE %1 ADD COLUMN %2").arg(_table).arg(column)))
 	{
 		Error(_log, "Failed to create column: '{:s}' in table: '{:s}' Error: {:s}", (column), (_table), (idb->error()));
 		return false;
 	}
+
 	return true;
 }
 
@@ -439,12 +457,14 @@ bool DBManager::deleteTable(const QString& table) const
 	{
 		SqlDatabase* idb = getDB();
 		SqlQuery query(idb);
+
 		if (!query.exec(QString("DROP TABLE %1").arg(table)))
 		{
 			Error(_log, "Failed to delete table: '{:s}' Error: {:s}", (table), (idb->error()));
 			return false;
 		}
 	}
+
 	return true;
 }
 
@@ -458,7 +478,8 @@ void DBManager::doAddBindValue(SqlQuery& query, const QVariantList& variants) co
 {
 	for (const auto& variant : variants)
 	{
-		auto t = variant.userType();
+		const auto t = variant.userType();
+
 		switch (t)
 		{
 			case QMetaType::UInt:
@@ -466,12 +487,15 @@ void DBManager::doAddBindValue(SqlQuery& query, const QVariantList& variants) co
 			case QMetaType::Bool:
 				query.addInt(variant.toInt());
 				break;
+
 			case QMetaType::Double:
 				query.addDouble(variant.toDouble());
 				break;
+
 			case QMetaType::QByteArray:
 				query.addBlob(variant.toByteArray());
 				break;
+
 			default:
 				query.addString(variant.toString());
 				break;
@@ -483,6 +507,7 @@ QJsonObject DBManager::getBackup()
 {
 	QJsonObject backup;
 	SqlDatabase* idb = getDB();
+
 	QStringList instanceKeys({ "enabled", "friendly_name", "instance" });
 	QStringList settingsKeys({ "config", "hyperhdr_instance", "type" });
 
@@ -493,6 +518,7 @@ QJsonObject DBManager::getBackup()
 	SqlQuery queryInst(idb);
 
 	queryInst.prepare(QString("SELECT * FROM instances"));
+
 	if (!queryInst.exec())
 	{
 		Error(_log, "Failed to get records from instances table");
@@ -503,6 +529,7 @@ QJsonObject DBManager::getBackup()
 	SqlQuery querySet(idb);
 
 	querySet.prepare(QString("SELECT * FROM settings"));
+
 	if (!querySet.exec())
 	{
 		Error(_log, "Failed to get records from settings table");
@@ -512,6 +539,7 @@ QJsonObject DBManager::getBackup()
 
 	// iterate through all found records
 	QJsonArray allInstances;
+
 	while (queryInst.next())
 	{
 		QJsonObject entry;
@@ -524,8 +552,8 @@ QJsonObject DBManager::getBackup()
 		allInstances.append(entry);
 	}
 
-
 	QJsonArray allSettings;
+
 	while (querySet.next())
 	{
 		QJsonObject entry;
@@ -539,7 +567,7 @@ QJsonObject DBManager::getBackup()
 
 				if (rec.fieldName(i) == "type")
 				{
-					for (settings::type selector = settings::type::SNDEFFECT; !valid && selector != settings::type::INVALID; selector = settings::type(((int)selector) + 1))
+					for (settings::type selector = settings::type::SNDEFFECT; !valid && selector != settings::type::INVALID; selector = settings::type(static_cast<int>(selector) + 1))
 					{
 						if (QString::compare(typeToString(selector), column.toString(), Qt::CaseInsensitive) == 0)
 							valid = true;
@@ -558,6 +586,7 @@ QJsonObject DBManager::getBackup()
 	backup["settings"] = allSettings;
 
 	_readonlyMode = rm;
+
 	return backup;
 }
 
@@ -565,10 +594,13 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 {
 	SqlDatabase* idb = getDB();
 	const QJsonObject& message = backupData.value("config").toObject();
+
 	bool rm = _readonlyMode;
 
 	Info(_log, "Creating DB backup first.");
+
 	QString resultFile = createLocalBackup();
+
 	if (!resultFile.isEmpty())
 		Info(_log, "The backup is saved as: {:s}", (resultFile));
 	else
@@ -593,18 +625,22 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 		}
 
 		const QJsonArray instances = message.value("instances").toArray();
+
 		if (instances.count() > 0)
 		{
-			for (auto value : instances)
+			for (const auto& value : instances)
 			{
-				QStringList headers, placeholder;
+				QStringList headers;
+				QStringList placeholder;
 				QVariantList values;
+
 				QJsonObject obj = value.toObject();
 
-				foreach(const QString & key, obj.keys())
+				for (const QString& key : obj.keys())
 				{
 					headers.append(key);
 					placeholder.append("?");
+
 					if (obj.value(key).isString())
 						values.append(obj.value(key).toString());
 					else
@@ -626,18 +662,22 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 		}
 
 		const QJsonArray settings = message.value("settings").toArray();
+
 		if (settings.count() > 0)
 		{
-			for (auto value : settings)
+			for (const auto& value : settings)
 			{
-				QStringList headers, placeholder;
+				QStringList headers;
+				QStringList placeholder;
 				QVariantList values;
+
 				QJsonObject obj = value.toObject();
 
-				foreach(const QString & key, obj.keys())
+				for (const QString& key : obj.keys())
 				{
 					headers.append(key);
 					placeholder.append("?");
+
 					if (obj.value(key).isString())
 						values.append(obj.value(key).toString());
 					else
@@ -675,11 +715,11 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 	return "";
 }
 
-
 QString DBManager::createLocalBackup()
 {
 	QJsonObject backupFirst = getBackup();
 	QString backupName = getDB()->databaseName();
+
 	if (!backupName.isEmpty() && QFile::exists(backupName))
 	{
 		backupName = QDir(QFileInfo(backupName).absoluteDir()).filePath(QString("backup_%1.json").arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz")));
@@ -688,11 +728,14 @@ QString DBManager::createLocalBackup()
 		{
 			QTextStream out(&backFile);
 			out.setGenerateByteOrderMark(true);
+
 			out << QJsonDocument(backupFirst).toJson(QJsonDocument::Compact);
 			out.flush();
 			backFile.close();
+
 			return backupName;
 		}
 	}
+
 	return QString();
 }
