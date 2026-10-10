@@ -120,6 +120,7 @@
   "leds_group_5_debug": "Felsöka",
   "leds_group_2_network": "Nätverk",
   "leds_group_3_serial": "USB/serie",
+  "leds_group_6_HID": "HID",
   "conf_logging_btn_autoscroll": "Automatisk rullning",
   "conf_logging_btn_pbupload": "Ladda upp en rapport för supportförfrågningar",
   "conf_logging_contpolicy": "Rapportera sekretesspolicy",
@@ -1313,5 +1314,6 @@
   "edt_ice_white_led_intensity": "ICE vit-led intensitet",
   "edt_ice_white_temperatur_r": "ICE vittemperatur röd",
   "edt_ice_white_temperatur_g": "ICE vittemperatur grön",
-  "edt_ice_white_temperatur_b": "ICE vittemperatur blå"
+  "edt_ice_white_temperatur_b": "ICE vittemperatur blå",
+  "edt_prevent_pixel_data_splitting_across_universes": "Förhindra att pixlar delas upp mellan Universum"
 }
