@@ -120,6 +120,7 @@
   "leds_group_5_debug": "Déboguer",
   "leds_group_2_network": "Réseau",
   "leds_group_3_serial": "USB/série",
+  "leds_group_6_HID": "HID",
   "conf_logging_btn_autoscroll": "Défilement automatique",
   "conf_logging_btn_pbupload": "Télécharger un rapport pour les demandes d'assistance",
   "conf_logging_contpolicy": "Signaler la politique de confidentialité",
@@ -1313,5 +1314,6 @@
   "edt_ice_white_led_intensity": "Intensité de la LED blanche ICE",
   "edt_ice_white_temperatur_r": "Température de blanc ICE – rouge",
   "edt_ice_white_temperatur_g": "Température de blanc ICE – vert",
-  "edt_ice_white_temperatur_b": "Température de blanc ICE – bleu"
+  "edt_ice_white_temperatur_b": "Température de blanc ICE – bleu",
+  "edt_prevent_pixel_data_splitting_across_universes": "Empêcher la scission de pixels entre les Univers"
 }

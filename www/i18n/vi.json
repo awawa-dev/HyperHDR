@@ -120,6 +120,7 @@
   "leds_group_5_debug": "Gỡ lỗi",
   "leds_group_2_network": "Mạng",
   "leds_group_3_serial": "USB/Serial",
+  "leds_group_6_HID": "HID",
   "conf_logging_btn_autoscroll": "Tự động di chuyển",
   "conf_logging_btn_pbupload": "Tải lên báo cáo cho các yêu cầu hỗ trợ",
   "conf_logging_contpolicy": "Báo cáo Chính sách Bảo mật",
@@ -1313,5 +1314,6 @@
   "edt_ice_white_led_intensity": "Cường độ LED trắng ICE",
   "edt_ice_white_temperatur_r": "Nhiệt độ màu trắng ICE – đỏ",
   "edt_ice_white_temperatur_g": "Nhiệt độ màu trắng ICE – xanh lá",
-  "edt_ice_white_temperatur_b": "Nhiệt độ màu trắng ICE – xanh dương"
+  "edt_ice_white_temperatur_b": "Nhiệt độ màu trắng ICE – xanh dương",
+  "edt_prevent_pixel_data_splitting_across_universes": "Ngăn chặn tình trạng tách pixel giữa các Universe"
 }

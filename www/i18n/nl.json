@@ -120,6 +120,7 @@
   "leds_group_5_debug": "Debuggen",
   "leds_group_2_network": "Netwerk",
   "leds_group_3_serial": "USB/serieel",
+  "leds_group_6_HID": "HID",
   "conf_logging_btn_autoscroll": "Automatisch scrollen",
   "conf_logging_btn_pbupload": "Upload een rapport voor ondersteuningsverzoeken",
   "conf_logging_contpolicy": "Rapporteer privacybeleid",
@@ -1313,5 +1314,6 @@
   "edt_ice_white_led_intensity": "ICE witte-led intensiteit",
   "edt_ice_white_temperatur_r": "ICE wit-temperatuur rood",
   "edt_ice_white_temperatur_g": "ICE wit-temperatuur groen",
-  "edt_ice_white_temperatur_b": "ICE wit-temperatuur blauw"
+  "edt_ice_white_temperatur_b": "ICE wit-temperatuur blauw",
+  "edt_prevent_pixel_data_splitting_across_universes": "Voorkom dat pixels over Universes worden gesplitst"
 }

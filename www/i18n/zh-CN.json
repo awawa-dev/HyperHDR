@@ -120,6 +120,7 @@
   "leds_group_5_debug": "调试",
   "leds_group_2_network": "网络",
   "leds_group_3_serial": "USB/串口",
+  "leds_group_6_HID": "HID",
   "conf_logging_btn_autoscroll": "自动滚动",
   "conf_logging_btn_pbupload": "上传报告以获取技术支持",
   "conf_logging_contpolicy": "查看隐私政策",

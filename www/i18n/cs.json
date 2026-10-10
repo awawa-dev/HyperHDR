@@ -120,6 +120,7 @@
   "leds_group_5_debug": "Ladit",
   "leds_group_2_network": "Síť",
   "leds_group_3_serial": "USB/sériový",
+  "leds_group_6_HID": "HID",
   "conf_logging_btn_autoscroll": "Automatické rolování",
   "conf_logging_btn_pbupload": "Nahrajte zprávu pro žádosti o podporu",
   "conf_logging_contpolicy": "Nahlásit zásady ochrany osobních údajů",
@@ -1313,5 +1314,6 @@
   "edt_ice_white_led_intensity": "ICE intenzita bílé LED",
   "edt_ice_white_temperatur_r": "ICE teplota bílé – červená",
   "edt_ice_white_temperatur_g": "ICE teplota bílé – zelená",
-  "edt_ice_white_temperatur_b": "ICE teplota bílé – modrá"
+  "edt_ice_white_temperatur_b": "ICE teplota bílé – modrá",
+  "edt_prevent_pixel_data_splitting_across_universes": "Zabraňte rozdělování pixelů mezi Vesmíry"
 }
