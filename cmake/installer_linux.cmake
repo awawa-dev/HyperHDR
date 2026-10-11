@@ -83,6 +83,11 @@ macro(InstallerLinux TARGET)
             install(CODE "set(DEST_DIR \"${CMAKE_INSTALL_LIBDIR}/hyperhdr/external\")" COMPONENT "HyperHDR")
 
             install(CODE [[
+                # Resolve the bundled library destination against the install prefix only if relative.
+                if(NOT IS_ABSOLUTE "${DEST_DIR}")
+                    set(DEST_DIR "${CMAKE_INSTALL_PREFIX}/${DEST_DIR}")
+                endif()
+
                 set(SYSTEM_LIBS_SKIP
                     "libc" "libglib-2" "libsystemd0" "libdbus-1" "libdl" "libexpat" "libfontconfig" "libgcc_s"
                     "libm" "libpthread" "librt" "libstdc++" "libudev" "libz.so" "libxrender1"
@@ -110,8 +115,8 @@ macro(InstallerLinux TARGET)
                         foreach(file ${files})
                             file(GET_RUNTIME_DEPENDENCIES RESOLVED_DEPENDENCIES_VAR QT_DEPENDENCIES EXECUTABLES ${file})
                             list(APPEND DEPENDENCIES ${QT_DEPENDENCIES})
-                            file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/${DEST_DIR}/plugins/${PLUGIN}" TYPE SHARED_LIBRARY FILES ${file})
-                            message("Installing QT plugin: ${file} to ${CMAKE_INSTALL_PREFIX}/${DEST_DIR}/plugins/${PLUGIN}")
+                            file(INSTALL DESTINATION "${DEST_DIR}/plugins/${PLUGIN}" TYPE SHARED_LIBRARY FILES ${file})
+                            message("Installing QT plugin: ${file} to ${DEST_DIR}/plugins/${PLUGIN}")
                         endforeach()
                     endif()
                 endforeach()
@@ -142,12 +147,12 @@ macro(InstallerLinux TARGET)
                 # Kopiowanie i ew. patchowanie RPATH z zachowaniem nowych ścieżek FHS
                 foreach(PREREQUISITE_LIB IN LISTS PREREQUISITE_LIBS)
                     # 1. Instalacja pliku bezpośrednio do katalogu docelowego
-                    file(INSTALL FILES "${PREREQUISITE_LIB}" DESTINATION "${CMAKE_INSTALL_PREFIX}/${DEST_DIR}" TYPE SHARED_LIBRARY)
-                    message("Installing: ${PREREQUISITE_LIB} to ${CMAKE_INSTALL_PREFIX}/${DEST_DIR}")
+                    file(INSTALL FILES "${PREREQUISITE_LIB}" DESTINATION "${DEST_DIR}" TYPE SHARED_LIBRARY)
+                    message("Installing: ${PREREQUISITE_LIB} to ${DEST_DIR}")
                     # 2. Sprawdzenie, czy plik nie jest dowiązaniem i czy to libproxy / libpxbackend
                     if(NOT IS_SYMLINK "${PREREQUISITE_LIB}" AND "${PREREQUISITE_LIB}" MATCHES "libproxy|libpxbackend")
                         get_filename_component(FILENAME "${PREREQUISITE_LIB}" NAME)
-                        set(INSTALLED_FILE "${CMAKE_INSTALL_PREFIX}/${DEST_DIR}/${FILENAME}")
+                        set(INSTALLED_FILE "${DEST_DIR}/${FILENAME}")
                         message("Patching RPATH: ${INSTALLED_FILE}")
                         execute_process(COMMAND chrpath -d "${INSTALLED_FILE}" OUTPUT_VARIABLE outputResult)
                     endif()
