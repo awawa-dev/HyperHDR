@@ -170,7 +170,7 @@
   "dashboard_infobox_label_statush": "HyperHDR status:",
   "dashboard_infobox_label_title": "Information",
   "dashboard_infobox_label_watchedversionbranch": "Watched version branch:",
-  "dashboard_infobox_message_updatesuccess": "You run the latest version of HyperHDR.",
+  "dashboard_infobox_message_updatesuccess": "You are running the latest version of HyperHDR.",
   "dashboard_infobox_message_updatewarning": "A newer version of HyperHDR is available! ($1)",
   "dashboard_label_intro": "The dashboard give you a quick overview about the status of HyperHDR and show you the latest news of the HyperHDR Blog.",
   "dashboard_message_default_password": "The default password for the WebUI is set. We strongly recommend to change this.",
