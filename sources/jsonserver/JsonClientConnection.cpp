@@ -12,6 +12,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket* socket, bool localConnect
 	, _receiveBuffer()
 	, _log("JSONCLIENTCONNECTION")
 {
+	_socket->setParent(this);
 	connect(_socket, &QTcpSocket::disconnected, this, &JsonClientConnection::disconnected);
 	connect(_socket, &QTcpSocket::readyRead, this, &JsonClientConnection::readRequest);
 	// create a new instance of JsonAPI
