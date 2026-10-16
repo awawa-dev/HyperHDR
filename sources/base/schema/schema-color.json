@@ -25,6 +25,71 @@
 			"required" : true,
 			"propertyOrder" : 2
 		},
+		"gaussianBlurRadius" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"step" : 1,
+			"title" : "Gaussian Blur Radius",
+			"required" : true,
+			"minimum" : 0,
+			"maximum": 30,
+			"default" : 0,
+			"propertyOrder" : 3
+		},
+		"blackThreshold" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"step" : 1,
+			"title" : "Black Threshold (force LEDs off)",
+			"required" : true,
+			"minimum" : 0,
+			"maximum": 30,
+			"default" : 0,
+			"propertyOrder" : 4
+},
+		"ledBrightnessRanges" :
+		{
+			"type" : "array",
+			"title" : "LED Brightness Ranges",
+			"required" : false,
+			"propertyOrder" : 4,
+			"default" : [],
+			"items" :
+			{
+				"type" : "object",
+				"title" : "Range",
+				"properties" :
+				{
+					"from" :
+					{
+						"type" : "integer",
+						"title" : "From LED",
+						"minimum" : 0,
+						"default" : 0
+					},
+					"to" :
+					{
+						"type" : "integer",
+						"title" : "To LED",
+						"minimum" : 0,
+						"default" : 99
+					},
+					"brightness" :
+					{
+						"type" : "number",
+						"format" : "stepper",
+						"step" : 0.05,
+						"title" : "Brightness (0.0 - 1.0)",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 1.0
+					}
+				},
+				"additionalProperties" : false
+			}
+		},
 		"channelAdjustment" :
 		{
 			"type" : "array",
@@ -32,7 +97,7 @@
 			"minItems": 1,
 			"maxItems": 1,
 			"required" : true,
-			"propertyOrder" : 3,
+			"propertyOrder" : 5,
 			"items" :
 			{
 				"type" : "object",
@@ -286,7 +351,7 @@
 						"required" : true,
 						"minimum" : 0.1,
 						"maximum": 100.0,
-						"default" : 1.5,						
+						"default" : 1.5,
 						"propertyOrder" : 19
 					},
 					"luminanceGain" :
@@ -310,7 +375,7 @@
 						"required" : true,
 						"minimum" : 0,
 						"maximum": 10,
-						"default" : 1,						
+						"default" : 1,
 						"propertyOrder" : 23
 					},
 					"backlightThreshold" :
