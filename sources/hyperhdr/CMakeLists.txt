@@ -151,9 +151,9 @@ if (APPLE) # macOS
 elseif (NOT WIN32) # Linux
 
 	if(ENABLE_DEPENDENCY_PACKAGING)
-		set(rpath_libs_dir "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/hyperhdr:$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/hyperhdr/external:$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/hyperhdr/external/plugins")
+		set(rpath_libs_dir "$ORIGIN/${LIBDIR_FROM_BINDIR}/hyperhdr:$ORIGIN/${LIBDIR_FROM_BINDIR}/hyperhdr/external:$ORIGIN/${LIBDIR_FROM_BINDIR}/hyperhdr/external/plugins")
 	else()
-		set(rpath_libs_dir "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/hyperhdr")
+		set(rpath_libs_dir "$ORIGIN/${LIBDIR_FROM_BINDIR}/hyperhdr")
 	endif()
 
 	set_target_properties(hyperhdr PROPERTIES
