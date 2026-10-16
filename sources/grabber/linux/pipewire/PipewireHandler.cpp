@@ -36,6 +36,7 @@
 
 #include <cassert>
 #include <cerrno>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -72,8 +73,8 @@ Q_DECLARE_METATYPE(uint32_t);
 constexpr const int DEFAULT_UPDATE_NUMBER = 4;
 
 PipewireHandler::PipewireHandler() :
-									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false),
-									_isError(false), _useRemoteDesktopPortal(false), _version(-1), _remoteDesktopVersion(-1), _streamNodeId(0),
+									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false), _pipewireStatus(false),
+									_isError(false), _useRemoteDesktopPortal(false), _version(-1), _remoteDesktopVersion(-1), _streamNodeId(SPA_ID_INVALID),
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
 									_targetMaxSize(512), _selectedDisplay(0), _frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _requestedFPS(10), _incomingFrame(nullptr),
 									_infoUpdate(DEFAULT_UPDATE_NUMBER), _initEGL(false), _enableEGL(true), _libEglHandle(nullptr), _libGlHandle(nullptr),
@@ -172,11 +173,12 @@ void PipewireHandler::closeSession()
 	_pwStreamListener = {};
 	_pwCoreListener = {};	
 	_portalStatus = false;
+	_pipewireStatus = false;
 	_isError = false;
 	_useRemoteDesktopPortal = false;
 	_remoteDesktopVersion = -1;
 	_errorMessage = "";
-	_streamNodeId = 0;
+	_streamNodeId = SPA_ID_INVALID;
 	_selectedDisplay = 0;
 	_frameWidth = 0;
 	_frameHeight = 0;
@@ -274,7 +276,7 @@ bool PipewireHandler::hasError()
 
 bool PipewireHandler::isRestartNeeded()
 {
-	return _isError || (_portalHandlers.empty() && !_portalStatus);
+	return _isError || (_portalHandlers.empty() && !_portalStatus && !_pipewireStatus);
 }
 
 int PipewireHandler::getVersion()
@@ -316,6 +318,13 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 	}
 
 	qDebug().nospace() << "Pipewire: targetMaxSize = " << _targetMaxSize;
+
+	if (selectedDisplay == PipewirePortal::ScreenID_Gamescope) {
+		qDebug().nospace() << "Pipewire: trying to initialize Gamescope...";
+
+		startPipewire();
+		return;
+	}
 
 	_dbusConnection = std::make_unique<PortalDBus>();
 
@@ -615,7 +624,12 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 	//------------------------------------------------------------------------------------
 	qDebug().nospace() << "Connecting to Pipewire interface for stream: " << _frameWidth << " x " << _frameHeight;
 	
-	if ( nullptr == (_pwMainThreadLoop = pw_thread_loop_new("pipewire-hyperhdr-loop", nullptr)))
+	startPipewire();
+}
+
+void PipewireHandler::startPipewire()
+{
+	if (nullptr == (_pwMainThreadLoop = pw_thread_loop_new("pipewire-hyperhdr-loop", nullptr)))
 	{
 		reportError("Pipewire: failed to create new Pipewire thread loop");
 		return;
@@ -631,6 +645,10 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 	{
 		reportError("Pipewire: could not connect to the Pipewire context");
 	}
+	else if (!_portalStatus && !initGamescope(_streamNodeId, _frameWidth, _frameHeight))
+	{
+		reportError("Pipewire: cannot initlize Gamescope");
+	}
 	else if ( nullptr == (_pwStream = createCapturingStream()))
 	{
 		reportError("Pipewire: failed to create new receiving Pipewire stream");
@@ -639,10 +657,82 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 	{
 		reportError("Pipewire: could not start main Pipewire loop");
 	}
+	else
+	{
+		_pipewireStatus = true;
+	}
 
 	pw_thread_loop_unlock(_pwMainThreadLoop);
 }
 
+bool PipewireHandler::initGamescope(uint& node_id, int& width, int& height, int timeout_ms)
+{	
+	struct Data {		
+		uint& node_id;
+		int& width;
+		int& height;
+		pw_registry* regId = nullptr;
+		pw_node* nodeSize = nullptr;
+		bool success = false;
+		spa_hook hookNode{}, hookSize{};
+	} data{node_id, width, height };
+
+	static const pw_registry_events regEvent = {
+		.version = PW_VERSION_REGISTRY_EVENTS,
+		.global = [](void* d, uint32_t id, uint32_t, const char* type, uint32_t, const spa_dict* p) {
+			auto& s = *static_cast<Data*>(d);
+
+			if (s.node_id != SPA_ID_INVALID || !type || strcmp(type, PW_TYPE_INTERFACE_Node))
+				return;
+
+			const auto* n = spa_dict_lookup(p, PW_KEY_NODE_NAME);
+			const auto* m = spa_dict_lookup(p, PW_KEY_MEDIA_CLASS);
+
+			if (!n || !m || strcmp(n, "gamescope") || strcmp(m, "Video/Source"))
+				return;
+
+			s.node_id = id;
+			qDebug().nospace() << "Pipewire: received gamescope node_id = " << s.node_id;
+
+			static const pw_node_events nodeEvent = {
+				.version = PW_VERSION_NODE_EVENTS,
+				.param = [](void* d, int, uint32_t id, uint32_t, uint32_t, const spa_pod* param) {
+					if (!param || (id != SPA_PARAM_EnumFormat && id != SPA_PARAM_Format))
+						return;
+
+					if (spa_video_info_raw info{}; spa_format_video_raw_parse(param, &info) >= 0) {
+						if (auto& s = *static_cast<Data*>(d); !s.success) {
+							s.width = static_cast<int>(info.size.width);
+							s.height = static_cast<int>(info.size.height);
+							s.success = s.width && s.height;
+							qDebug().nospace() << "Pipewire: received gamescope size " << s.width << "x" << s.height;
+						}
+					}
+				}
+			};
+			
+			if (nullptr != (s.nodeSize = static_cast<pw_node*>(pw_registry_bind(s.regId, id, PW_TYPE_INTERFACE_Node, PW_VERSION_NODE, 0)))) {
+				pw_node_add_listener(s.nodeSize, &s.hookSize, &nodeEvent, &s);
+				pw_node_enum_params(s.nodeSize, 0, SPA_PARAM_EnumFormat, 0, 1, nullptr);
+			}
+		}
+	};
+
+	if (nullptr != (data.regId = pw_core_get_registry(_pwContextConnection, PW_VERSION_REGISTRY, 0))) {
+		pw_registry_add_listener(data.regId, &data.hookNode, &regEvent, &data);
+
+		const auto beginTime = std::chrono::steady_clock::now();
+		auto* loop = pw_thread_loop_get_loop(_pwMainThreadLoop);
+
+		while (!data.success && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - beginTime).count() <= timeout_ms)
+			pw_loop_iterate(loop, 20);
+
+		if (data.nodeSize)
+			pw_proxy_destroy(reinterpret_cast<pw_proxy*>(data.nodeSize));
+		pw_proxy_destroy(reinterpret_cast<pw_proxy*>(data.regId));
+	}
+	return data.success;
+}
 
 void PipewireHandler::onStateChanged(pw_stream_state old, pw_stream_state state, const char* error)
 {	
