@@ -11,6 +11,23 @@ env:
 
 jobs:
 
+  BlackBorderTests:
+    name: Blackbar detector regressions
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake qt6-base-dev
+      - name: Build and run detector tests
+        run: |
+          cmake -S tests/blackborder -B build/blackborder-tests -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/blackborder-tests --parallel 2
+          ctest --test-dir build/blackborder-tests --output-on-failure
+
 ######################
 ###### Linux #########
 ######################

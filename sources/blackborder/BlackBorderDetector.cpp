@@ -1,8 +1,7 @@
-#include <iostream>
-#include <utils/Logger.h>
-
 // BlackBorders includes
 #include <blackborder/BlackBorderDetector.h>
+#include <algorithm>
+#include <array>
 #include <cmath>
 
 using namespace hyperhdr;
@@ -191,6 +190,35 @@ BlackBorder BlackBorderDetector::process_letterbox(const Image<ColorRgb>& image)
 	detectedBorder.verticalSize = 0;
 
 	return detectedBorder;
+}
+
+// Subtitle mode for letterboxed video (https://github.com/awawa-dev/HyperHDR/issues/821).
+// Subtitles are usually drawn inside the bottom bar, so the bar height is measured at the
+// top, across the whole width, and assumed to be the same at the bottom. The bottom is only
+// sampled near its corners (10% and 90%), outside centered captions, so that video with a
+// smaller bottom bar is still not cropped too much. The smaller of both bounds the crop.
+BlackBorder BlackBorderDetector::process_subtitle(const Image<ColorRgb>& image) const
+{
+	const BlackBorder unknownBorder{ true, -1, 0 };
+	if (image.width() == 0 || image.height() < 3)
+		return unknownBorder;
+
+	constexpr unsigned TOP_COLUMNS = 9; // 10%, 20% ... 90%
+	std::array<unsigned, TOP_COLUMNS> top{};
+	for (unsigned i = 0; i < TOP_COLUMNS; ++i)
+		top[i] = uint64_t(image.width() - 1) * ((i + 1) * 10) / 100;
+	const unsigned bottomLeft = top[0], bottomRight = top[TOP_COLUMNS - 1];
+
+	const unsigned lastRow = image.height() - 1;
+	for (unsigned y = 0; y < image.height() / 3; ++y)
+	{
+		for (unsigned x : top)
+			if (!isBlack(image(x, y)))
+				return { false, int(y), 0 };
+		if (!isBlack(image(bottomLeft, lastRow - y)) || !isBlack(image(bottomRight, lastRow - y)))
+			return { false, int(y), 0 };
+	}
+	return unknownBorder;
 }
 
 ///

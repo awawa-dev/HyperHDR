@@ -77,10 +77,10 @@
 		{
 			"type" : "string",
 			"title": "edt_conf_bb_mode_title",
-			"enum" : ["default", "classic", "osd", "letterbox"],
+			"enum" : ["default", "classic", "osd", "letterbox", "subtitle"],
 			"default" : "default",
 			"options" : {
-				"enum_titles" : ["edt_conf_enum_bbdefault", "edt_conf_enum_bbclassic", "edt_conf_enum_bbosd", "edt_conf_enum_bbletterbox"]
+				"enum_titles" : ["edt_conf_enum_bbdefault", "edt_conf_enum_bbclassic", "edt_conf_enum_bbosd", "edt_conf_enum_bbletterbox", "edt_conf_enum_bbsubtitle"]
 			},
 			"required" : true,
 			"propertyOrder" : 7
