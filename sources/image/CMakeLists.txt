@@ -6,6 +6,7 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/image)
 FILE ( GLOB_RECURSE image_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp" )
 
 add_library(image OBJECT ${image_SOURCES})
+set_property(TARGET image PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_link_libraries(image
 	Qt${Qt_VERSION}::Core
