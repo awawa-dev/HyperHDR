@@ -1,0 +1,22 @@
+{
+  "os_list": [
+    {
+      "name": "HyperHDR 22.0.0 (64-bit)",
+      "description": "HyperHDR is an open-source ambient lighting system for TVs and music setups. It performs real-time analysis of video and audio streams to create immersive LED lighting (64-bit, Pi 3/4/5).",
+      "url": "https://github.com/awawa-dev/HyperHDR/releases/download/v22.0.0.0/2026-06-18-raspios-trixie-P010-hdr-arm64-lite.img.xz",
+      "icon": "https://raw.githubusercontent.com/awawa-dev/HyperHDR/master/resources/icons/hyperhdr-icon-32px.png",
+      "init_format": "none",
+      "website": "https://www.hyperhdr.eu/",
+      "extract_size": 3594519552,
+      "extract_sha256": "22742173efaf74f4c114432ad13ac21d0e1908203054ea2fd3f6a3f87fd598ec",
+      "image_download_size": 760724096,
+      "image_download_sha256": "0d94fd65b9efa34b5cc95501821eb3dd58b1027df28b42f22772c18ef0e98cef",
+      "release_date": "2026-09-01",
+      "devices": [
+        "pi3-64bit",
+        "pi4-64bit",
+        "pi5-64bit"
+      ]
+    }
+  ]
+}
