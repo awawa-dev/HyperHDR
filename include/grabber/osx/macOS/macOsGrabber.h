@@ -39,6 +39,8 @@ private slots:
 
 	void grabFrame();
 
+	void streamFailed(quint64 generation, QString message);
+
 public slots:
 
 	bool start() override;
@@ -67,10 +69,19 @@ private:
 	void processFrame(int8_t* source);
 
 	void decodeFrame(CGImageRef capturedImage);
+
+	void startStream();
+
+	void stopStream();
 		
 private:
 	QString					_configurationPath;
 	QTimer					_timer;
 
 	CGDirectDisplayID		_actualDisplay;
+
+	unsigned				_nativeCropLeft, _nativeCropRight, _nativeCropTop, _nativeCropBottom;
+	quint64					_streamGeneration;
+	size_t					_streamNativeWidth;
+	CGSize					_streamPointSize;
 };
