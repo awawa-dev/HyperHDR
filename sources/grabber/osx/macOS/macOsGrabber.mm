@@ -39,6 +39,7 @@
 #include <limits.h>
 
 #include <base/HyperHdrInstance.h>
+#include <utils/InternalClock.h>
 
 #include <QDirIterator>
 #include <QFileInfo>
@@ -58,6 +59,8 @@ namespace
 	id activity;
 	#ifdef MACOS_SCK
 		CGColorSpaceRef colorSpaceRgb = nil;
+		constexpr int CAPTURE_LATENCY_BUDGET_MS = 150;
+		constexpr long long CAPTURE_TIMEOUT_MS = 3000;
 	#endif
 };
 
@@ -66,6 +69,9 @@ macOsGrabber::macOsGrabber(const QString& device, const QString& configurationPa
 	: Grabber(configurationPath, "MACOS_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
 	, _actualDisplay(0)
+	, _capturesInFlight(0)
+	, _lastCaptureRequest(0)
+	, _maxCapturesInFlight(2)
 {
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &macOsGrabber::grabFrame);
@@ -227,6 +233,11 @@ bool macOsGrabber::start()
 		if (init())
 		{
 			_timer.setInterval(1000/_fps);
+			#ifdef MACOS_SCK
+				// allow up to CAPTURE_LATENCY_BUDGET_MS worth of frames to be pending, whatever the framerate
+				_maxCapturesInFlight = std::max(2, (CAPTURE_LATENCY_BUDGET_MS + _timer.interval() - 1) / _timer.interval());
+				Info(_log, "Max pending capture requests: {:d}", _maxCapturesInFlight);
+			#endif
 			_timer.start();
 			Info(_log, "Started");
 			return true;
@@ -271,9 +282,29 @@ void macOsGrabber::decodeFrame(CGImageRef capturedImage)
 	}
 }
 
+void macOsGrabber::releaseCaptureSlot()
+{
+	// never go below zero: a late completion may arrive after a timeout reset
+	int inFlight = _capturesInFlight;
+	while (inFlight > 0 && !_capturesInFlight.compare_exchange_weak(inFlight, inFlight - 1)) {}
+}
+
 void macOsGrabber::grabFrame()
 {	
 	#ifdef MACOS_SCK		
+		// Limit the number of requests in flight: when the system is busy (e.g. a fullscreen game),
+		// queued requests pile up inside WindowServer and their memory is only released on exit
+		long long now = InternalClock::now();
+		if (_capturesInFlight >= _maxCapturesInFlight)
+		{
+			if (now - _lastCaptureRequest < CAPTURE_TIMEOUT_MS)
+				return;
+			Warning(_log, "Pending capture requests timed out, issuing a new one");
+			_capturesInFlight = 0;
+		}
+		_capturesInFlight++;
+		_lastCaptureRequest = now;
+
 		[SCShareableContent getShareableContentWithCompletionHandler:^(SCShareableContent* content, NSError* error)
 		{	
 			SCDisplay* target = nil;
@@ -287,6 +318,7 @@ void macOsGrabber::grabFrame()
 			}
 			if (!target)
 			{
+				releaseCaptureSlot();
 				uninit();
 				QTimer::singleShot(3000, this, &macOsGrabber::start);
 			}
@@ -326,6 +358,8 @@ void macOsGrabber::grabFrame()
 							QString errorMessage = QString::fromNSString([error localizedDescription]);
 							Error(_log, "captureImageWithFilter Error: {:s}", errorMessage);
 						}
+
+						releaseCaptureSlot();
 					}
 				];
 

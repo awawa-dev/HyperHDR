@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <chrono>
+#include <atomic>
 
 // Qt includes
 #include <QObject>
@@ -67,10 +68,15 @@ private:
 	void processFrame(int8_t* source);
 
 	void decodeFrame(CGImageRef capturedImage);
+
+	void releaseCaptureSlot();
 		
 private:
 	QString					_configurationPath;
 	QTimer					_timer;
 
 	CGDirectDisplayID		_actualDisplay;
+	std::atomic<int>		_capturesInFlight;
+	std::atomic<long long>	_lastCaptureRequest;
+	int						_maxCapturesInFlight;
 };
