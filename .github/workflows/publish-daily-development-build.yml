@@ -77,7 +77,7 @@ jobs:
 
       - name: Download artifacts from selected run
         if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
