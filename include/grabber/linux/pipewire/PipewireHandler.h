@@ -141,6 +141,8 @@ private:
 	void selectSourcesResponse(uint response);
 	void startResponse(uint response, QString restoreHandle, uint32_t nodeId, int nodeStreamWidth, int nodeStreamHeight);
 
+	void		startPipewire();
+	bool		initGamescope(uint& node_id, int& width, int& height, int timeout_ms = 1000);
 	pw_stream*	createCapturingStream();
 	QString		getSessionToken();
 	QString		getRequestToken();
@@ -150,6 +152,7 @@ private:
 	QString _restorationToken;
 	QString _errorMessage;
 	bool	_portalStatus;
+	bool	_pipewireStatus;
 	bool	_isError;
 	bool	_useRemoteDesktopPortal;
 	int		_version;
