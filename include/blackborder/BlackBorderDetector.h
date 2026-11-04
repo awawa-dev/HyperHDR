@@ -21,6 +21,7 @@ namespace hyperhdr
 		BlackBorder process_classic(const Image<ColorRgb>& image) const;
 		BlackBorder process_osd(const Image<ColorRgb>& image) const;
 		BlackBorder process_letterbox(const Image<ColorRgb>& image) const;
+		BlackBorder process_subtitle(const Image<ColorRgb>& image) const;
 
 	private:
 		inline bool isBlack(const ColorRgb& color) const

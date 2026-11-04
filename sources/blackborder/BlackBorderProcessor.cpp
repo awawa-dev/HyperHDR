@@ -183,6 +183,13 @@ bool BlackBorderProcessor::process(const Image<ColorRgb>& image)
 	else if (_detectionMode == "letterbox") {
 		imageBorder = _borderDetector->process_letterbox(image);
 	}
+	else if (_detectionMode == "subtitle") {
+		imageBorder = _borderDetector->process_subtitle(image);
+		// A frame too dark to measure does not contradict known bars: keep the crop instead of
+		// counting towards an unknown border, so dark scenes don't expose subtitles in the bar.
+		if (imageBorder.unknown && !_currentBorder.unknown)
+			return false;
+	}
 	// add blur to the border
 	if (imageBorder.horizontalSize > 0)
 	{
