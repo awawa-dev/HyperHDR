@@ -99,7 +99,5 @@ java -cp "$BUILD_TMP/signer_classes:$APKSIG" SignApk \
     "$BUILD_TMP/aligned.apk" \
     "$PROJ_DIR/HyperHDR-v24.0.0-beta.0-AndroidTV.apk"
 
-cp "$PROJ_DIR/HyperHDR-v24.0.0-beta.0-AndroidTV.apk" "$PROJ_DIR/HyperHDR-v22.0.0.0-AndroidTV.apk"
-cp "$PROJ_DIR/HyperHDR-v24.0.0-beta.0-AndroidTV.apk" "$PROJ_DIR/app/build/outputs/apk/debug/app-debug.apk"
 rm -rf "$BUILD_TMP"
 echo "Done! Output APK: $PROJ_DIR/HyperHDR-v24.0.0-beta.0-AndroidTV.apk"

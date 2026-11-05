@@ -153,7 +153,7 @@
     "sDHOffsetMax": 0.75
   },
   "blackborderdetector": {
-    "enable": false,
+    "enable": true,
     "threshold": 5,
     "unknownFrameCnt": 600,
     "borderFrameCnt": 50,

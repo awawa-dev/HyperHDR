@@ -49,3 +49,8 @@ __pycache__/
 **/build/
 local.properties
 *.iml
+
+# Scratch, audit, and temporary package files
+.bug-hunter/
+grabber.apk
+deb-resources/*.deb

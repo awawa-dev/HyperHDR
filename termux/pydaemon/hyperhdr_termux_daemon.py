@@ -698,10 +698,34 @@ class HeadlessHyperHdrDaemon:
         self.videomode = "2D"
         self.videomodehdr = 0
 
+        # Black border detector state
+        self.bb_enabled = True
+        self.bb_threshold = 5  # percent
+        self.bb_blur_remove = 1
+        self.bb_border_switch_cnt = 10
+        self.bb_unknown_timeout = 300
+        self.detected_crop_top = 0
+        self.detected_crop_bottom = 0
+        self.detected_crop_left = 0
+        self.detected_crop_right = 0
+        self.candidate_crop_y = 0
+        self.candidate_crop_x = 0
+        self.consistent_frames_y = 0
+        self.consistent_frames_x = 0
+        self.unknown_frames_y = 0
+        self.unknown_frames_x = 0
+
         self._load_db(wled_host, web_port, json_port)
 
     def _load_db(self, wled_host, web_port, json_port):
-        if os.path.exists(self.db_path):
+        tmp_path = self.db_path + ".tmp"
+        if (not os.path.exists(self.db_path) or os.path.getsize(self.db_path) == 0) and os.path.exists(tmp_path) and os.path.getsize(tmp_path) > 0:
+            try:
+                os.replace(tmp_path, self.db_path)
+            except Exception:
+                pass
+
+        if os.path.exists(self.db_path) and os.path.getsize(self.db_path) > 0:
             try:
                 with open(self.db_path, "r", encoding="utf-8") as f:
                     self.db = json.load(f)
@@ -720,9 +744,15 @@ class HeadlessHyperHdrDaemon:
                 "instances": [{"instance": 0, "friendly_name": "First LED instance", "running": True}],
                 "settings": {"0": cfg0},
             }
+        else:
+            self.current_instance = self.db.get("currentInstance", 0)
+
         cfg = self.get_active_config()
-        cfg.setdefault("systemControl", {})["systemInstanceEnable"] = True
-        cfg.setdefault("videoControl", {})["videoInstanceEnable"] = True
+        cfg.setdefault("systemControl", {}).setdefault("systemInstanceEnable", True)
+        cfg.setdefault("videoControl", {}).setdefault("videoInstanceEnable", True)
+        bb_obj = cfg.setdefault("blackborderdetector", {})
+        if not bb_obj.get("enable", False):
+            bb_obj["enable"] = True
         sys_grab = cfg.setdefault("systemGrabber", {})
         if sys_grab.get("device", "auto") in ("", "auto") or "Pipewire" in str(sys_grab.get("device", "")) or "screencap" in str(sys_grab.get("device", "")):
             sys_grab["device"] = "Android MediaProjection API"
@@ -747,8 +777,12 @@ class HeadlessHyperHdrDaemon:
 
     def _save_db(self):
         try:
-            with open(self.db_path, "w", encoding="utf-8") as f:
+            tmp_path = self.db_path + ".tmp"
+            with open(tmp_path, "w", encoding="utf-8") as f:
                 json.dump(self.db, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, self.db_path)
         except Exception:
             pass
 
@@ -795,18 +829,129 @@ class HeadlessHyperHdrDaemon:
             except Exception:
                 pass
 
+    def _detect_black_borders(self, rgb_bytes, width, height):
+        if not rgb_bytes or width <= 0 or height <= 0:
+            return
+
+        cfg = self.get_active_config()
+        bb_cfg = cfg.get("blackborderdetector", {})
+        thresh_pct = max(1, min(50, int(bb_cfg.get("threshold", self.bb_threshold))))
+        thresh = max(1, int(thresh_pct * 255 / 100))
+        max_h = height // 3
+        max_w = width // 3
+        stride = width * 3
+
+        x_mid = width // 2
+        x33 = width // 3
+        x66 = (width * 2) // 3
+        x25 = width // 4
+        x75 = (width * 3) // 4
+
+        y_mid = height // 2
+        y33 = height // 3
+        y66 = (height * 2) // 3
+
+        def is_bright(pos):
+            return rgb_bytes[pos] > thresh or rgb_bytes[pos + 1] > thresh or rgb_bytes[pos + 2] > thresh
+
+        # 1. Letterbox (top & bottom horizontal black bars)
+        detected_y = -1
+        for y in range(max_h):
+            top_off = y * stride
+            bot_off = (height - 1 - y) * stride
+            if (
+                is_bright(top_off + x_mid * 3)
+                or is_bright(top_off + x33 * 3)
+                or is_bright(top_off + x66 * 3)
+                or is_bright(top_off + x25 * 3)
+                or is_bright(top_off + x75 * 3)
+                or is_bright(bot_off + x_mid * 3)
+                or is_bright(bot_off + x33 * 3)
+                or is_bright(bot_off + x66 * 3)
+            ):
+                detected_y = y
+                break
+
+        if detected_y == -1:
+            self.unknown_frames_y += 1
+            if self.unknown_frames_y >= self.bb_unknown_timeout:
+                self.detected_crop_top = 0
+                self.detected_crop_bottom = 0
+                self.candidate_crop_y = 0
+                self.consistent_frames_y = 0
+        else:
+            self.unknown_frames_y = 0
+            y_border = min(max_h, detected_y + self.bb_blur_remove) if detected_y > 0 else 0
+            if abs(y_border - self.candidate_crop_y) <= 2:
+                self.consistent_frames_y += 1
+                if self.consistent_frames_y >= self.bb_border_switch_cnt and abs(y_border - self.detected_crop_top) > 1:
+                    self.detected_crop_top = y_border
+                    self.detected_crop_bottom = y_border
+            else:
+                self.candidate_crop_y = y_border
+                self.consistent_frames_y = 0
+
+        # 2. Pillarbox (left & right vertical black bars)
+        detected_x = -1
+        for x in range(max_w):
+            rx = width - 1 - x
+            if (
+                is_bright(y_mid * stride + x * 3)
+                or is_bright(y33 * stride + x * 3)
+                or is_bright(y66 * stride + x * 3)
+                or is_bright(y_mid * stride + rx * 3)
+                or is_bright(y33 * stride + rx * 3)
+                or is_bright(y66 * stride + rx * 3)
+            ):
+                detected_x = x
+                break
+
+        if detected_x == -1:
+            self.unknown_frames_x += 1
+            if self.unknown_frames_x >= self.bb_unknown_timeout:
+                self.detected_crop_left = 0
+                self.detected_crop_right = 0
+                self.candidate_crop_x = 0
+                self.consistent_frames_x = 0
+        else:
+            self.unknown_frames_x = 0
+            x_border = min(max_w, detected_x + self.bb_blur_remove) if detected_x > 0 else 0
+            if abs(x_border - self.candidate_crop_x) <= 2:
+                self.consistent_frames_x += 1
+                if self.consistent_frames_x >= self.bb_border_switch_cnt and abs(x_border - self.detected_crop_left) > 1:
+                    self.detected_crop_left = x_border
+                    self.detected_crop_right = x_border
+            else:
+                self.candidate_crop_x = x_border
+                self.consistent_frames_x = 0
+
     def _sample_rgb_frame_to_leds(self, rgb_bytes, width, height, leds):
         led_count = max(1, len(leds))
         out = [0.0] * (led_count * 3)
         if not rgb_bytes or width <= 0 or height <= 0:
             return out
 
+        if self.components.get("BLACKBORDER", True):
+            self._detect_black_borders(rgb_bytes, width, height)
+            c_top = self.detected_crop_top
+            c_bottom = max(c_top + 16, height - self.detected_crop_bottom)
+            c_left = self.detected_crop_left
+            c_right = max(c_left + 16, width - self.detected_crop_right)
+        else:
+            c_top = 0
+            c_bottom = height
+            c_left = 0
+            c_right = width
+
+        active_w = max(1, c_right - c_left)
+        active_h = max(1, c_bottom - c_top)
+
         if self.mapping_type == "unicolor_mean":
             sr = sg = sb = cnt = 0
             stride = width * 3
-            for y in range(0, height, 2):
+            for y in range(c_top, c_bottom, 2):
                 roff = y * stride
-                for x in range(0, width, 2):
+                for x in range(c_left, c_right, 2):
                     p = roff + x * 3
                     sr += rgb_bytes[p]
                     sg += rgb_bytes[p + 1]
@@ -824,10 +969,10 @@ class HeadlessHyperHdrDaemon:
         for i, z in enumerate(leds):
             if z.get("disabled", False):
                 continue
-            x0 = max(0, min(width - 1, int(float(z.get("hmin", 0.0)) * width)))
-            x1 = max(x0 + 1, min(width, int(math.ceil(float(z.get("hmax", 1.0)) * width))))
-            y0 = max(0, min(height - 1, int(float(z.get("vmin", 0.0)) * height)))
-            y1 = max(y0 + 1, min(height, int(math.ceil(float(z.get("vmax", 1.0)) * height))))
+            x0 = c_left + max(0, min(active_w - 1, int(float(z.get("hmin", 0.0)) * active_w)))
+            x1 = c_left + max(x0 - c_left + 1, min(active_w, int(math.ceil(float(z.get("hmax", 1.0)) * active_w))))
+            y0 = c_top + max(0, min(active_h - 1, int(float(z.get("vmin", 0.0)) * active_h)))
+            y1 = c_top + max(y0 - c_top + 1, min(active_h, int(math.ceil(float(z.get("vmax", 1.0)) * active_h))))
             sr = sg = sb = cnt = 0
             for y in range(y0, y1):
                 roff = y * stride
@@ -900,6 +1045,34 @@ class HeadlessHyperHdrDaemon:
                         target_rgb[i * 3] = float(r)
                         target_rgb[i * 3 + 1] = float(g)
                         target_rgb[i * 3 + 2] = float(b)
+
+                # Minimum backlight threshold preservation (prevents signal drop on black scenes/blackbars)
+                ca_list = cfg.get("color", {}).get("channelAdjustment", [])
+                ca = ca_list[0] if ca_list else {}
+                try:
+                    bt = float(ca.get("backlightThreshold", 0.0039))
+                except (ValueError, TypeError):
+                    bt = 0.0039
+                colored_bl = bool(ca.get("backlightColored", True))
+                bri_scale = max(0.0, min(100.0, float(ca.get("brightness", 100)))) / 100.0
+
+                if bt > 0.0001:
+                    norm = (bt / 100.0) if bt > 1.0 else bt
+                    min_floor = max(1.0, norm * 255.0 * bri_scale)
+                    for i in range(led_count):
+                        r = target_rgb[i * 3]
+                        g = target_rgb[i * 3 + 1]
+                        b = target_rgb[i * 3 + 2]
+                        if colored_bl:
+                            target_rgb[i * 3] = max(r, min_floor)
+                            target_rgb[i * 3 + 1] = max(g, min_floor)
+                            target_rgb[i * 3 + 2] = max(b, min_floor)
+                        else:
+                            avg = (r + g + b) / 3.0
+                            if avg < min_floor:
+                                target_rgb[i * 3] = max(r, min_floor)
+                                target_rgb[i * 3 + 1] = max(g, min_floor)
+                                target_rgb[i * 3 + 2] = max(b, min_floor)
 
                 # Smooth interpolation
                 smooth_en = self.components.get("SMOOTHING", True)
@@ -1157,7 +1330,13 @@ class HeadlessHyperHdrDaemon:
             if path in ("/", ""):
                 path = "/index.html"
             rel = path.lstrip("/")
-            full = os.path.join(self.www_dir, rel)
+            real_www = os.path.realpath(self.www_dir)
+            full = os.path.realpath(os.path.join(self.www_dir, rel))
+            if not full.startswith(real_www + os.sep) and full != real_www:
+                self._send_http(conn, "403 Forbidden", "text/plain", b"Forbidden")
+                conn.close()
+                return
+
             if os.path.isfile(full):
                 with open(full, "rb") as f:
                     data = f.read()
@@ -1188,6 +1367,8 @@ class HeadlessHyperHdrDaemon:
                 break
             if b != b"\r":
                 buf.extend(b)
+                if len(buf) > 8192:
+                    raise ValueError("HTTP request line exceeded 8KB limit")
         return buf.decode("ascii", errors="ignore")
 
     @staticmethod
@@ -1305,8 +1486,20 @@ class HeadlessHyperHdrDaemon:
         full_cmd = f"{cmd}-{sub}" if sub else cmd
         resp = {"command": full_cmd, "success": True, "tan": tan}
 
-        if cmd != "authorize" and client is not None and not client.get("authenticated", False):
-            return {"command": full_cmd, "success": False, "error": "No Authorization", "tan": tan}
+        if cmd != "authorize":
+            if client is not None:
+                if not client.get("authenticated", False):
+                    return {"command": full_cmd, "success": False, "error": "No Authorization", "tan": tan}
+            else:
+                # Non-WebSocket request (HTTP POST /json-rpc or raw TCP 19444)
+                req_token = req.get("token")
+                current_pw = self.db.get("adminPassword", "hyperhdr")
+                is_default_pw = bool(self.db.get("defaultPasswordSet", True)) and (current_pw == "hyperhdr")
+                if not is_default_pw:
+                    saved_toks = {t.get("token") for t in self.db.get("tokens", []) if isinstance(t, dict)}
+                    token_valid = req_token and (req_token in self.active_session_tokens or req_token in saved_toks)
+                    if not token_valid and cmd not in ("serverinfo", "sysinfo"):
+                        return {"command": full_cmd, "success": False, "error": "No Authorization", "tan": tan}
 
         if cmd == "authorize":
             current_pw = self.db.get("adminPassword", "hyperhdr")
@@ -1542,7 +1735,16 @@ class HeadlessHyperHdrDaemon:
         elif cmd == "processing":
             self.mapping_type = req.get("mappingType", "multicolor_mean")
             self.broadcast_ws({"command": "imageToLedMapping-update", "data": {"imageToLedMappingType": self.mapping_type}})
-        elif cmd in ("clear", "clearall"):
+        elif cmd == "clear":
+            prio = int(req.get("priority", 1))
+            if prio < 0:
+                for k in list(self.priorities.keys()):
+                    if k < 250:
+                        del self.priorities[k]
+            elif prio in self.priorities and prio < 250:
+                del self.priorities[prio]
+            self._broadcast_prios()
+        elif cmd == "clearall":
             for k in list(self.priorities.keys()):
                 if k < 250:
                     del self.priorities[k]
@@ -1571,6 +1773,40 @@ class HeadlessHyperHdrDaemon:
             if "config" in req:
                 self.db = req["config"]
                 self._save_db()
+        elif cmd == "instance":
+            instances = self.db.setdefault("instances", [])
+            target_inst = int(req.get("instance", 0))
+            if sub == "switchTo":
+                self.current_instance = target_inst
+                self.db["currentInstance"] = self.current_instance
+                self._save_db()
+                cfg = self.get_active_config()
+                self.wled.configure(cfg.get("device", {}))
+                self.grabber.configure(cfg.get("systemGrabber", {}))
+                return resp
+            elif sub == "saveName":
+                new_name = req.get("name", "LED Instance")
+                for o in instances:
+                    if o.get("instance") == target_inst:
+                        o["friendly_name"] = new_name
+            elif sub in ("startInstance", "stopInstance"):
+                run_state = (sub == "startInstance")
+                for o in instances:
+                    if o.get("instance") == target_inst:
+                        o["running"] = run_state
+            elif sub == "createInstance":
+                name = req.get("name", "Secondary LED instance")
+                next_id = max([o.get("instance", 0) for o in instances] + [0]) + 1
+                instances.append({"instance": next_id, "friendly_name": name, "running": True})
+                self.db.setdefault("settings", {})[str(next_id)] = copy.deepcopy(self.default_config)
+            elif sub == "deleteInstance" and target_inst > 0:
+                self.db["instances"] = [o for o in instances if o.get("instance") != target_inst]
+                self.db.setdefault("settings", {}).pop(str(target_inst), None)
+                if self.current_instance == target_inst:
+                    self.current_instance = 0
+                    self.db["currentInstance"] = 0
+            self._save_db()
+            self.broadcast_ws({"command": "instance-update", "data": self.db.get("instances", [])})
         return resp
 
     def _public_priorities(self):

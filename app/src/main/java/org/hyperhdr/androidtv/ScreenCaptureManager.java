@@ -15,6 +15,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.DisplayMetrics;
@@ -29,10 +30,12 @@ import java.net.InetAddress;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ScreenCaptureManager {
 
@@ -41,6 +44,18 @@ public class ScreenCaptureManager {
     }
 
     private static final int TERMUX_BRIDGE_UDP_PORT = 19446;
+    private static final InetAddress LOOPBACK_ADDR;
+    static {
+        InetAddress addr = null;
+        try {
+            addr = InetAddress.getByAddress(new byte[]{127, 0, 0, 1});
+        } catch (Throwable t) {
+            try {
+                addr = InetAddress.getByName("127.0.0.1");
+            } catch (Throwable ignored) {}
+        }
+        LOOPBACK_ADDR = addr;
+    }
 
     private final Context context;
     private final InfiniteColorEngine colorEngine;
@@ -52,6 +67,10 @@ public class ScreenCaptureManager {
     private HandlerThread captureThread;
     private Handler captureHandler;
     private DatagramSocket bridgeUdpSocket;
+    private byte[] bridgePacketBuf = null;
+
+    private final ExecutorService previewExecutor = Executors.newSingleThreadExecutor();
+    private final AtomicBoolean previewEncodingInProgress = new AtomicBoolean(false);
 
     private final ScheduledExecutorService fallbackScheduler = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> fallbackFuture;
@@ -266,15 +285,6 @@ public class ScreenCaptureManager {
 
     private synchronized boolean rebuildVirtualDisplay() {
         try {
-            if (virtualDisplay != null) {
-                try { virtualDisplay.release(); } catch (Throwable ignored) {}
-                virtualDisplay = null;
-            }
-            if (imageReader != null) {
-                try { imageReader.close(); } catch (Throwable ignored) {}
-                imageReader = null;
-            }
-
             int dpi = 160;
             try {
                 DisplayMetrics dm = context.getResources().getDisplayMetrics();
@@ -284,7 +294,29 @@ public class ScreenCaptureManager {
             } catch (Throwable ignored) {
             }
 
-            imageReader = ImageReader.newInstance(captureWidth, captureHeight, PixelFormat.RGBA_8888, 3);
+            if (virtualDisplay != null) {
+                // Android 14+ forbids calling mediaProjection.createVirtualDisplay() multiple times on the same token.
+                // Safely resize the existing VirtualDisplay and attach the new surface.
+                ImageReader oldReader = this.imageReader;
+                ImageReader newReader = ImageReader.newInstance(captureWidth, captureHeight, PixelFormat.RGBA_8888, 4);
+                newReader.setOnImageAvailableListener(this::onImageAvailable, captureHandler);
+                this.imageReader = newReader;
+
+                virtualDisplay.resize(captureWidth, captureHeight, dpi);
+                virtualDisplay.setSurface(newReader.getSurface());
+
+                if (oldReader != null) {
+                    try { oldReader.close(); } catch (Throwable ignored) {}
+                }
+                return true;
+            }
+
+            if (imageReader != null) {
+                try { imageReader.close(); } catch (Throwable ignored) {}
+                imageReader = null;
+            }
+
+            imageReader = ImageReader.newInstance(captureWidth, captureHeight, PixelFormat.RGBA_8888, 4);
             imageReader.setOnImageAvailableListener(this::onImageAvailable, captureHandler);
 
             // Standard AOSP MediaProjection flag is VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR (16)
@@ -361,6 +393,19 @@ public class ScreenCaptureManager {
         currentCaptureFps = 0.0;
     }
 
+    public synchronized void stop() {
+        stopCapture();
+        if (fallbackFuture != null) {
+            fallbackFuture.cancel(true);
+            fallbackFuture = null;
+        }
+        fallbackScheduler.shutdownNow();
+        previewExecutor.shutdownNow();
+        if (bridgeUdpSocket != null && !bridgeUdpSocket.isClosed()) {
+            try { bridgeUdpSocket.close(); } catch (Throwable ignored) {}
+        }
+    }
+
     private void startFallbackGrabberLoop() {
         if (fallbackFuture != null) {
             fallbackFuture.cancel(false);
@@ -409,7 +454,8 @@ public class ScreenCaptureManager {
             proc = new ProcessBuilder("screencap").start();
             InputStream is = proc.getInputStream();
 
-            byte[] hdr = readExact(is, 12);
+            int hdrLen = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? 16 : 12;
+            byte[] hdr = readExact(is, hdrLen);
             if (hdr == null) {
                 proc.destroy();
                 return false;
@@ -498,17 +544,22 @@ public class ScreenCaptureManager {
 
     private void onImageAvailable(ImageReader reader) {
         Image image = null;
+        int[] argb = null;
+        int outW = 0;
+        int outH = 0;
+        long t0 = 0;
+        long now = 0;
         try {
             image = reader.acquireLatestImage();
             if (image == null) return;
 
-            long now = System.currentTimeMillis();
+            now = System.currentTimeMillis();
             long minInterval = Math.max(8L, 1000L / Math.max(5, targetFps));
             // Always decode the very first frame; only throttle subsequent frames if within minInterval
             if (latestArgbFrame != null && (now - lastSurfaceFrameAtMs) < minInterval) {
                 return;
             }
-            long t0 = System.nanoTime();
+            t0 = System.nanoTime();
 
             Image.Plane[] planes = image.getPlanes();
             if (planes == null || planes.length == 0) return;
@@ -525,10 +576,10 @@ public class ScreenCaptureManager {
             int cR = Math.min(w / 3, cropRight);
             int cT = Math.min(h / 3, cropTop);
             int cB = Math.min(h / 3, cropBottom);
-            int outW = Math.max(16, w - cL - cR);
-            int outH = Math.max(16, h - cT - cB);
+            outW = Math.max(16, w - cL - cR);
+            outH = Math.max(16, h - cT - cB);
 
-            int[] argb = new int[outW * outH];
+            argb = new int[outW * outH];
             byte[] rowBytes = new byte[rowStride];
             Buffer baseBuf = (Buffer) buffer;
             for (int y = 0; y < outH; y++) {
@@ -550,18 +601,21 @@ public class ScreenCaptureManager {
                     }
                 }
             }
+        } catch (Throwable ignored) {
+            argb = null;
+        } finally {
+            if (image != null) {
+                try { image.close(); } catch (Throwable ignored) {}
+            }
+        }
 
+        if (argb != null && outW > 0 && outH > 0) {
             lastSurfaceFrameAtMs = now;
             latestArgbFrame = argb;
             latestFrameWidth = outW;
             latestFrameHeight = outH;
             activeCaptureMode = "Android MediaProjection API";
             onDecodedFrame(argb, outW, outH, t0);
-        } catch (Throwable ignored) {
-        } finally {
-            if (image != null) {
-                try { image.close(); } catch (Throwable ignored) {}
-            }
         }
     }
 
@@ -573,20 +627,28 @@ public class ScreenCaptureManager {
         colorEngine.updateScreenFrame(argb, w, h);
         publishTermuxBridgeFrame(argb, w, h);
 
-        if (now - lastPreviewSentMs >= 80 || latestPreviewJpeg == null) {
+        if ((now - lastPreviewSentMs >= 80 || latestPreviewJpeg == null)
+                && previewEncodingInProgress.compareAndSet(false, true)) {
             lastPreviewSentMs = now;
-            try {
-                Bitmap bmp = Bitmap.createBitmap(argb, w, h, Bitmap.Config.ARGB_8888);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream(8192);
-                bmp.compress(Bitmap.CompressFormat.JPEG, 78, baos);
-                bmp.recycle();
-                byte[] jpeg = baos.toByteArray();
-                latestPreviewJpeg = jpeg;
-                if (imageStreamRequested && previewListener != null) {
-                    previewListener.onPreviewJpegFrame(jpeg);
+            final int[] frameCopy = argb.clone();
+            final int fw = w;
+            final int fh = h;
+            previewExecutor.execute(() -> {
+                try {
+                    Bitmap bmp = Bitmap.createBitmap(frameCopy, fw, fh, Bitmap.Config.ARGB_8888);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream(8192);
+                    bmp.compress(Bitmap.CompressFormat.JPEG, 75, baos);
+                    bmp.recycle();
+                    byte[] jpeg = baos.toByteArray();
+                    latestPreviewJpeg = jpeg;
+                    if (imageStreamRequested && previewListener != null) {
+                        previewListener.onPreviewJpegFrame(jpeg);
+                    }
+                } catch (Throwable ignored) {
+                } finally {
+                    previewEncodingInProgress.set(false);
                 }
-            } catch (Throwable ignored) {
-            }
+            });
         }
 
         lastLatencyMs = Math.max(1L, (System.nanoTime() - t0Ns) / 1_000_000L);
@@ -600,18 +662,23 @@ public class ScreenCaptureManager {
 
     private void publishTermuxBridgeFrame(int[] argb, int w, int h) {
         try {
+            if (bridgeUdpSocket == null || LOOPBACK_ADDR == null) return;
             // Downscale to 160x90 RGB24 (43,200 bytes + 8-byte header = 43,208 bytes < 64KB UDP limit)
             int bw = 160;
             int bh = 90;
-            byte[] pkt = new byte[8 + bw * bh * 3];
-            pkt[0] = 'H';
-            pkt[1] = 'H';
-            pkt[2] = 'M';
-            pkt[3] = 'P';
-            pkt[4] = (byte) ((bw >> 8) & 0xFF);
-            pkt[5] = (byte) (bw & 0xFF);
-            pkt[6] = (byte) ((bh >> 8) & 0xFF);
-            pkt[7] = (byte) (bh & 0xFF);
+            int totalLen = 8 + bw * bh * 3;
+            if (bridgePacketBuf == null || bridgePacketBuf.length != totalLen) {
+                bridgePacketBuf = new byte[totalLen];
+                bridgePacketBuf[0] = 'H';
+                bridgePacketBuf[1] = 'H';
+                bridgePacketBuf[2] = 'M';
+                bridgePacketBuf[3] = 'P';
+                bridgePacketBuf[4] = (byte) ((bw >> 8) & 0xFF);
+                bridgePacketBuf[5] = (byte) (bw & 0xFF);
+                bridgePacketBuf[6] = (byte) ((bh >> 8) & 0xFF);
+                bridgePacketBuf[7] = (byte) (bh & 0xFF);
+            }
+            byte[] pkt = bridgePacketBuf;
             int idx = 8;
             for (int dy = 0; dy < bh; dy++) {
                 int sy = (dy * h) / bh;
@@ -625,15 +692,8 @@ public class ScreenCaptureManager {
                 }
             }
             latestBridgePacket = pkt;
-            if (bridgeUdpSocket != null) {
-                DatagramPacket dp = new DatagramPacket(
-                        pkt,
-                        pkt.length,
-                        InetAddress.getByName("127.0.0.1"),
-                        TERMUX_BRIDGE_UDP_PORT
-                );
-                bridgeUdpSocket.send(dp);
-            }
+            DatagramPacket dp = new DatagramPacket(pkt, totalLen, LOOPBACK_ADDR, TERMUX_BRIDGE_UDP_PORT);
+            bridgeUdpSocket.send(dp);
         } catch (Throwable ignored) {
         }
     }

@@ -63,3 +63,17 @@ Built from the official [`HyperHDR-24.0.0-beta.0-Linux-aarch64.deb`](https://git
   * `hyperhdr status` — Check daemon PID and recent logs
   * `hyperhdr logs` — Follow `~/.hyperhdr/hyperhdr.log`
   * `hyperhdr stop` — Stop background daemon
+
+## 3. Native ADB Screencap Bridge (Zero-APK Grabbing)
+
+If you run the headless server in Termux without installing any Android APK, standard Android permissions prevent Termux from capturing the screen. The native `screencap_bridge` runs under UID 2000 (`shell`) in `/data/local/tmp`, captures frames in RAM via `/system/bin/screencap`, downscales to 160x90, and streams them via loopback UDP (`:19446`) directly into HyperHDR:
+
+* Source: [`termux/shim/hyperhdr_screencap_bridge.c`](termux/shim/hyperhdr_screencap_bridge.c)
+* Host controller: [`scripts/screencap_bridge.sh`](scripts/screencap_bridge.sh)
+  ```bash
+  ./scripts/screencap_bridge.sh start    # Start background grabber on TV
+  ./scripts/screencap_bridge.sh status   # Check grabber status
+  ./scripts/screencap_bridge.sh logs     # View live capture FPS & metrics
+  ./scripts/screencap_bridge.sh stop     # Stop bridge
+  ```
+

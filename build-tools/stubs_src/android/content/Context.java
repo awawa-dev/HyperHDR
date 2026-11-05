@@ -5,6 +5,8 @@ public abstract class Context {
     public static final String ACTIVITY_SERVICE = "activity";
     public static final String MEDIA_PROJECTION_SERVICE = "media_projection";
     public static final String NOTIFICATION_SERVICE = "notification";
+    public static final String POWER_SERVICE = "power";
+    public static final String WIFI_SERVICE = "wifi";
     public Context getApplicationContext() { return this; }
     public AssetManager getAssets() { return null; }
     public Resources getResources() { return null; }

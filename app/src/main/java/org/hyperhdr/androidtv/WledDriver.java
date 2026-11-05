@@ -39,6 +39,7 @@ public class WledDriver {
     private DatagramSocket udpSocket;
     private InetAddress resolvedAddress;
     private String lastResolvedHost = "";
+    private long lastDnsAttemptMs = 0;
     private String savedWledStateJson = null;
 
     // Performance metrics for HyperHDR dashboard
@@ -83,6 +84,20 @@ public class WledDriver {
         this.brightnessMaxLevel = deviceCfg.optInt("brightnessMaxLevel", 255);
         this.restoreOriginalState = deviceCfg.optBoolean("restoreOriginalState", false);
         this.lastResolvedHost = "";
+        this.lastDnsAttemptMs = 0;
+        final String preHost = this.host;
+        new Thread(() -> {
+            try {
+                InetAddress addr = InetAddress.getByName(preHost);
+                synchronized (WledDriver.this) {
+                    if (preHost.equals(WledDriver.this.host)) {
+                        resolvedAddress = addr;
+                        lastResolvedHost = preHost;
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }).start();
 
         if (enabled && ("wled".equals(deviceType) || "hyperk".equals(deviceType))) {
             final String targetHost = this.host;
@@ -162,8 +177,25 @@ public class WledDriver {
                 udpSocket = new DatagramSocket();
             }
             if (resolvedAddress == null || !host.equals(lastResolvedHost)) {
-                resolvedAddress = InetAddress.getByName(host);
-                lastResolvedHost = host;
+                long now = System.currentTimeMillis();
+                if (now - lastDnsAttemptMs < 10000L) {
+                    recordFrameSent(false);
+                    return;
+                }
+                lastDnsAttemptMs = now;
+                try {
+                    resolvedAddress = InetAddress.getByName(host);
+                    lastResolvedHost = host;
+                } catch (Exception e) {
+                    lastResolvedHost = host;
+                    resolvedAddress = null;
+                    recordFrameSent(false);
+                    return;
+                }
+            }
+            if (resolvedAddress == null) {
+                recordFrameSent(false);
+                return;
             }
             int ledCount = rgbFlat.length / 3;
             byte[] ordered = new byte[ledCount * 3];

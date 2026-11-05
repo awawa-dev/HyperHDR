@@ -66,8 +66,8 @@ public class InfiniteColorEngine {
     private volatile int[] adjYellow = new int[]{255, 255, 0};
     private volatile int[] adjWhite = new int[]{255, 255, 255};
     private volatile double gammaR = 1.5, gammaG = 1.5, gammaB = 1.5;
-    private volatile int backlightThreshold = 0;
-    private volatile boolean backlightColored = false;
+    private volatile double backlightThreshold = 0.0039;
+    private volatile boolean backlightColored = true;
     private volatile int brightness = 100;
     private volatile int brightnessCompensation = 0;
     private volatile int temperature = 6500;
@@ -81,10 +81,21 @@ public class InfiniteColorEngine {
     private volatile double damping = 0.5;
     private volatile boolean lowLightAntiFlickering = true;
 
-    // Black border detector parameters
+    // Black border detector parameters and state
+    private volatile boolean blackborderEnabled = true;
     private volatile int blackborderThreshold = 5;
     private volatile String blackborderMode = "default";
+    private volatile int blackborderBlurRemove = 1;
+    private volatile int blackborderBorderSwitchCnt = 10;
+    private volatile int blackborderUnknownTimeout = 300; // ~10 seconds at 30fps
+
     private volatile int detectedCropTop = 0, detectedCropBottom = 0, detectedCropLeft = 0, detectedCropRight = 0;
+    private int candidateCropY = 0;
+    private int candidateCropX = 0;
+    private int consistentFramesY = 0;
+    private int consistentFramesX = 0;
+    private int unknownFramesY = 0;
+    private int unknownFramesX = 0;
 
     // Smoothing state buffers (in linear float RGB 0..255)
     private float[] currentFloatRgb = new float[0];
@@ -213,9 +224,17 @@ public class InfiniteColorEngine {
         // 4. Blackborder detector
         JSONObject bbObj = rootConfig.optJSONObject("blackborderdetector");
         if (bbObj != null) {
-            components.put("BLACKBORDER", bbObj.optBoolean("enable", true));
-            this.blackborderThreshold = bbObj.optInt("threshold", 5);
+            boolean en = bbObj.optBoolean("enable", true);
+            components.put("BLACKBORDER", en);
+            this.blackborderEnabled = en;
+            this.blackborderThreshold = Math.max(1, Math.min(50, bbObj.optInt("threshold", 5)));
             this.blackborderMode = bbObj.optString("mode", "default");
+            this.blackborderBlurRemove = Math.max(0, bbObj.optInt("blurRemoveCnt", 1));
+            this.blackborderBorderSwitchCnt = Math.max(5, bbObj.optInt("borderFrameCnt", 10));
+            this.blackborderUnknownTimeout = Math.max(30, bbObj.optInt("unknownFrameCnt", 300));
+        } else {
+            components.put("BLACKBORDER", true);
+            this.blackborderEnabled = true;
         }
 
         // 5. System & Video Control
@@ -274,7 +293,10 @@ public class InfiniteColorEngine {
         this.gammaR = ca.optDouble("gammaRed", this.gammaR);
         this.gammaG = ca.optDouble("gammaGreen", this.gammaG);
         this.gammaB = ca.optDouble("gammaBlue", this.gammaB);
-        this.backlightThreshold = ca.optInt("backlightThreshold", this.backlightThreshold);
+        double bt = ca.optDouble("backlightThreshold", this.backlightThreshold);
+        if (!Double.isNaN(bt)) {
+            this.backlightThreshold = bt;
+        }
         this.backlightColored = ca.optBoolean("backlightColored", this.backlightColored);
         this.brightness = ca.optInt("brightness", this.brightness);
         this.brightnessCompensation = ca.optInt("brightnessCompensation", this.brightnessCompensation);
@@ -329,6 +351,14 @@ public class InfiniteColorEngine {
         long periodMs = Math.max(8L, Math.round(1000.0 / hz));
         lastTickNs = System.nanoTime();
         loopFuture = scheduler.scheduleAtFixedRate(this::tick, 0, periodMs, TimeUnit.MILLISECONDS);
+    }
+
+    public synchronized void stop() {
+        if (loopFuture != null) {
+            loopFuture.cancel(true);
+            loopFuture = null;
+        }
+        scheduler.shutdownNow();
     }
 
     public void updateScreenFrame(int[] rgbaPixels, int width, int height) {
@@ -645,18 +675,20 @@ public class InfiniteColorEngine {
                 outG *= briScale;
                 outB *= briScale;
 
-                // Minimum backlight threshold preservation
-                if (backlightThreshold > 0) {
-                    float minFloor = (backlightThreshold / 100.0f) * 255.0f * briScale;
+                // Minimum backlight threshold preservation (prevents signal drop on black scenes/blackbars)
+                if (backlightThreshold > 0.0001) {
+                    double norm = backlightThreshold > 1.0 ? (backlightThreshold / 100.0) : backlightThreshold;
+                    float minFloor = (float) Math.max(1.0f, norm * 255.0f * briScale);
                     if (backlightColored) {
-                        outR = Math.max(outR, minFloor * 0.5f);
-                        outG = Math.max(outG, minFloor * 0.5f);
-                        outB = Math.max(outB, minFloor * 0.5f);
+                        outR = Math.max(outR, minFloor);
+                        outG = Math.max(outG, minFloor);
+                        outB = Math.max(outB, minFloor);
                     } else {
-                        if (outR < minFloor && outG < minFloor && outB < minFloor) {
-                            outR = minFloor;
-                            outG = minFloor;
-                            outB = minFloor;
+                        float avg = (outR + outG + outB) / 3.0f;
+                        if (avg < minFloor) {
+                            outR = Math.max(outR, minFloor);
+                            outG = Math.max(outG, minFloor);
+                            outB = Math.max(outB, minFloor);
                         }
                     }
                 }
@@ -724,32 +756,19 @@ public class InfiniteColorEngine {
     }
 
     private void sampleFrameToLeds(int[] rgba, int width, int height, List<LedZone> zones, float[] outRgb) {
-        int cTop = 0, cBottom = height, cLeft = 0, cRight = width;
-        if (getComponentState("BLACKBORDER")) {
-            int thresh = Math.max(1, (blackborderThreshold * 255) / 100);
-            int midX = width / 2;
-            int q1X = width / 4;
-            int q3X = (width * 3) / 4;
-            while (cTop < height / 3) {
-                if (isPixelBright(rgba[cTop * width + midX], thresh)
-                        || isPixelBright(rgba[cTop * width + q1X], thresh)
-                        || isPixelBright(rgba[cTop * width + q3X], thresh)) {
-                    break;
-                }
-                cTop++;
-            }
-            while (cBottom > (height * 2) / 3) {
-                int y = cBottom - 1;
-                if (isPixelBright(rgba[y * width + midX], thresh)
-                        || isPixelBright(rgba[y * width + q1X], thresh)
-                        || isPixelBright(rgba[y * width + q3X], thresh)) {
-                    break;
-                }
-                cBottom--;
-            }
-            detectedCropTop = cTop;
-            detectedCropBottom = height - cBottom;
+        if (getComponentState("BLACKBORDER") && blackborderEnabled) {
+            detectBlackBorders(rgba, width, height);
+        } else {
+            detectedCropTop = 0;
+            detectedCropBottom = 0;
+            detectedCropLeft = 0;
+            detectedCropRight = 0;
         }
+
+        int cTop = detectedCropTop;
+        int cBottom = Math.max(cTop + 16, height - detectedCropBottom);
+        int cLeft = detectedCropLeft;
+        int cRight = Math.max(cLeft + 16, width - detectedCropRight);
 
         int activeW = Math.max(1, cRight - cLeft);
         int activeH = Math.max(1, cBottom - cTop);
@@ -780,9 +799,11 @@ public class InfiniteColorEngine {
         for (int i = 0; i < zones.size(); i++) {
             LedZone z = zones.get(i);
             int x0 = cLeft + Math.max(0, Math.min(activeW - 1, (int) (z.hmin * activeW)));
-            int x1 = cLeft + Math.max(x0 + 1, Math.min(activeW, (int) Math.ceil(z.hmax * activeW)));
+            int x1 = cLeft + Math.max(x0 - cLeft + 1, Math.min(activeW, (int) Math.ceil(z.hmax * activeW)));
             int y0 = cTop + Math.max(0, Math.min(activeH - 1, (int) (z.vmin * activeH)));
-            int y1 = cTop + Math.max(y0 + 1, Math.min(activeH, (int) Math.ceil(z.vmax * activeH)));
+            int y1 = cTop + Math.max(y0 - cTop + 1, Math.min(activeH, (int) Math.ceil(z.vmax * activeH)));
+            x1 = Math.min(width, Math.max(x0 + 1, x1));
+            y1 = Math.min(height, Math.max(y0 + 1, y1));
 
             long sumR = 0, sumG = 0, sumB = 0, count = 0;
             for (int y = y0; y < y1; y++) {
@@ -799,6 +820,103 @@ public class InfiniteColorEngine {
                 outRgb[i * 3] = (float) sumR / count;
                 outRgb[i * 3 + 1] = (float) sumG / count;
                 outRgb[i * 3 + 2] = (float) sumB / count;
+            }
+        }
+    }
+
+    private void detectBlackBorders(int[] rgba, int width, int height) {
+        int thresh = Math.max(1, (blackborderThreshold * 255) / 100);
+        int maxBorderH = height / 3;
+        int maxBorderW = width / 3;
+
+        int xMid = width / 2;
+        int x33 = width / 3;
+        int x66 = (width * 2) / 3;
+        int x25 = width / 4;
+        int x75 = (width * 3) / 4;
+
+        int yMid = height / 2;
+        int y33 = height / 3;
+        int y66 = (height * 2) / 3;
+
+        // 1. Horizontal borders (Letterbox: top & bottom black bars)
+        int detectedY = -1;
+        for (int y = 0; y < maxBorderH; y++) {
+            int topRow = y * width;
+            int botRow = (height - 1 - y) * width;
+            if (isPixelBright(rgba[topRow + xMid], thresh)
+                    || isPixelBright(rgba[topRow + x33], thresh)
+                    || isPixelBright(rgba[topRow + x66], thresh)
+                    || isPixelBright(rgba[topRow + x25], thresh)
+                    || isPixelBright(rgba[topRow + x75], thresh)
+                    || isPixelBright(rgba[botRow + xMid], thresh)
+                    || isPixelBright(rgba[botRow + x33], thresh)
+                    || isPixelBright(rgba[botRow + x66], thresh)) {
+                detectedY = y;
+                break;
+            }
+        }
+
+        if (detectedY == -1) {
+            // Dark scene / unknown border: PRESERVE current detected border!
+            unknownFramesY++;
+            if (unknownFramesY >= blackborderUnknownTimeout) {
+                detectedCropTop = 0;
+                detectedCropBottom = 0;
+                candidateCropY = 0;
+                consistentFramesY = 0;
+            }
+        } else {
+            unknownFramesY = 0;
+            int yBorder = detectedY > 0 ? Math.min(maxBorderH, detectedY + blackborderBlurRemove) : 0;
+            if (Math.abs(yBorder - candidateCropY) <= 2) {
+                consistentFramesY++;
+                if (consistentFramesY >= blackborderBorderSwitchCnt && Math.abs(yBorder - detectedCropTop) > 1) {
+                    detectedCropTop = yBorder;
+                    detectedCropBottom = yBorder;
+                }
+            } else {
+                candidateCropY = yBorder;
+                consistentFramesY = 0;
+            }
+        }
+
+        // 2. Vertical borders (Pillarbox: left & right black bars)
+        int detectedX = -1;
+        for (int x = 0; x < maxBorderW; x++) {
+            int rightX = width - 1 - x;
+            if (isPixelBright(rgba[yMid * width + x], thresh)
+                    || isPixelBright(rgba[y33 * width + x], thresh)
+                    || isPixelBright(rgba[y66 * width + x], thresh)
+                    || isPixelBright(rgba[yMid * width + rightX], thresh)
+                    || isPixelBright(rgba[y33 * width + rightX], thresh)
+                    || isPixelBright(rgba[y66 * width + rightX], thresh)) {
+                detectedX = x;
+                break;
+            }
+        }
+
+        if (detectedX == -1) {
+            // Dark scene / unknown border: PRESERVE current detected border!
+            unknownFramesX++;
+            if (unknownFramesX >= blackborderUnknownTimeout) {
+                detectedCropLeft = 0;
+                detectedCropRight = 0;
+                candidateCropX = 0;
+                consistentFramesX = 0;
+            }
+        } else {
+            unknownFramesX = 0;
+            int xBorder = detectedX > 0 ? Math.min(maxBorderW, detectedX + blackborderBlurRemove) : 0;
+            if (Math.abs(xBorder - candidateCropX) <= 2) {
+                consistentFramesX++;
+                if (consistentFramesX >= blackborderBorderSwitchCnt && Math.abs(xBorder - detectedCropLeft) > 1) {
+                    detectedCropLeft = xBorder;
+                    detectedCropRight = xBorder;
+                }
+            } else {
+                candidateCropX = xBorder;
+                consistentFramesX = 0;
             }
         }
     }

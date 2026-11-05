@@ -86,8 +86,17 @@ public class HyperHdrServer {
             String schemaText = readAssetText("server_schema.json");
             serverSchema = new JSONObject(schemaText);
 
-            File dbFile = new File(context.getFilesDir(), "hyperhdr_db.json");
-            if (dbFile.exists()) {
+            File filesDir = context.getFilesDir();
+            if (filesDir != null && !filesDir.exists()) {
+                filesDir.mkdirs();
+            }
+            File dbFile = new File(filesDir, "hyperhdr_db.json");
+            File tmpFile = new File(filesDir, "hyperhdr_db.json.tmp");
+            if ((!dbFile.exists() || dbFile.length() == 0) && tmpFile.exists() && tmpFile.length() > 0) {
+                tmpFile.renameTo(dbFile);
+            }
+
+            if (dbFile.exists() && dbFile.length() > 0) {
                 try (FileInputStream fis = new FileInputStream(dbFile)) {
                     byte[] data = readAllBytes(fis);
                     dbState = new JSONObject(new String(data, StandardCharsets.UTF_8));
@@ -117,6 +126,8 @@ public class HyperHdrServer {
                 settingsByInst.put("0", defConfig);
                 dbState.put("settings", settingsByInst);
                 saveDatabase();
+            } else {
+                currentInstance = dbState.optInt("currentInstance", 0);
             }
 
             JSONObject activeCfg = getActiveInstanceConfig();
@@ -153,35 +164,56 @@ public class HyperHdrServer {
             JSONObject sysCtrl = cfg.optJSONObject("systemControl");
             if (sysCtrl == null) {
                 sysCtrl = new JSONObject();
+                sysCtrl.put("systemInstanceEnable", true);
                 cfg.put("systemControl", sysCtrl);
+            } else if (!sysCtrl.has("systemInstanceEnable")) {
+                sysCtrl.put("systemInstanceEnable", true);
             }
-            sysCtrl.put("systemInstanceEnable", true);
 
             JSONObject vidCtrl = cfg.optJSONObject("videoControl");
             if (vidCtrl == null) {
                 vidCtrl = new JSONObject();
+                vidCtrl.put("videoInstanceEnable", true);
                 cfg.put("videoControl", vidCtrl);
+            } else if (!vidCtrl.has("videoInstanceEnable")) {
+                vidCtrl.put("videoInstanceEnable", true);
             }
-            vidCtrl.put("videoInstanceEnable", true);
 
             JSONObject sysGrab = cfg.optJSONObject("systemGrabber");
             if (sysGrab == null) {
                 sysGrab = new JSONObject();
+                sysGrab.put("device", "Android MediaProjection API");
                 cfg.put("systemGrabber", sysGrab);
             }
             String sDev = sysGrab.optString("device", "auto");
-            if (sDev.isEmpty() || "auto".equalsIgnoreCase(sDev) || sDev.contains("Pipewire") || sDev.contains("Android TV Display") || sDev.contains("screencap")) {
+            if (sDev.isEmpty() || "auto".equalsIgnoreCase(sDev) || sDev.contains("Pipewire") || sDev.contains("screencap")) {
                 sysGrab.put("device", "Android MediaProjection API");
             }
 
             JSONObject vidGrab = cfg.optJSONObject("videoGrabber");
             if (vidGrab == null) {
                 vidGrab = new JSONObject();
+                vidGrab.put("device", "Android MediaProjection API");
                 cfg.put("videoGrabber", vidGrab);
             }
             String vDev = vidGrab.optString("device", "auto");
             if (vDev.isEmpty() || "auto".equalsIgnoreCase(vDev) || "Android-MediaProjection-0".equals(vDev) || "Termux-ScreenGrabber-0".equals(vDev)) {
                 vidGrab.put("device", "Android MediaProjection API");
+            }
+
+            JSONObject bbObj = cfg.optJSONObject("blackborderdetector");
+            if (bbObj == null) {
+                bbObj = new JSONObject();
+                bbObj.put("enable", true);
+                bbObj.put("threshold", 5);
+                bbObj.put("unknownFrameCnt", 600);
+                bbObj.put("borderFrameCnt", 50);
+                bbObj.put("maxInconsistentCnt", 10);
+                bbObj.put("blurRemoveCnt", 1);
+                bbObj.put("mode", "default");
+                cfg.put("blackborderdetector", bbObj);
+            } else if (!bbObj.has("enable") || !bbObj.optBoolean("enable", false)) {
+                bbObj.put("enable", true);
             }
         } catch (Exception ignored) {
         }
@@ -201,13 +233,35 @@ public class HyperHdrServer {
         }
     }
 
-    private synchronized void saveDatabase() {
+    public synchronized void saveDatabase() {
+        if (dbState == null) return;
         try {
-            File dbFile = new File(context.getFilesDir(), "hyperhdr_db.json");
-            try (FileOutputStream fos = new FileOutputStream(dbFile)) {
-                fos.write(dbState.toString(2).getBytes(StandardCharsets.UTF_8));
+            File filesDir = context.getFilesDir();
+            if (filesDir != null && !filesDir.exists()) {
+                filesDir.mkdirs();
             }
-        } catch (Exception ignored) {
+            File dbFile = new File(filesDir, "hyperhdr_db.json");
+            File tmpFile = new File(filesDir, "hyperhdr_db.json.tmp");
+            byte[] bytes = dbState.toString(2).getBytes(StandardCharsets.UTF_8);
+            try (FileOutputStream fos = new FileOutputStream(tmpFile)) {
+                fos.write(bytes);
+                fos.flush();
+                try {
+                    fos.getFD().sync();
+                } catch (Exception ignored) {}
+            }
+            if (!tmpFile.renameTo(dbFile)) {
+                try (FileOutputStream fos = new FileOutputStream(dbFile)) {
+                    fos.write(bytes);
+                    fos.flush();
+                    try {
+                        fos.getFD().sync();
+                    } catch (Exception ignored) {}
+                }
+                tmpFile.delete();
+            }
+        } catch (Exception e) {
+            appendLog("ERROR", "DB", "Failed to save database: " + e.getMessage());
         }
     }
 
@@ -243,6 +297,7 @@ public class HyperHdrServer {
 
     public synchronized void stop() {
         running = false;
+        try { telemetryScheduler.shutdownNow(); } catch (Exception ignored) {}
         try { if (httpServerSocket != null) httpServerSocket.close(); } catch (Exception ignored) {}
         try { if (jsonRpcServerSocket != null) jsonRpcServerSocket.close(); } catch (Exception ignored) {}
         try { if (flatbufServerSocket != null) flatbufServerSocket.close(); } catch (Exception ignored) {}
@@ -739,10 +794,28 @@ public class HyperHdrServer {
         resp.put("success", true);
         resp.put("tan", tan);
 
-        if (!"authorize".equals(cmd) && client != null && !client.authenticated) {
-            resp.put("success", false);
-            resp.put("error", "No Authorization");
-            return resp;
+        if (!"authorize".equals(cmd)) {
+            if (client != null) {
+                if (!client.authenticated) {
+                    resp.put("success", false);
+                    resp.put("error", "No Authorization");
+                    return resp;
+                }
+            } else {
+                // Non-WebSocket request (HTTP POST /json-rpc or raw TCP socket)
+                String reqToken = req.optString("token", null);
+                boolean authRequired = dbState != null
+                        && (!dbState.optBoolean("defaultPasswordSet", true)
+                        || !"hyperhdr".equals(dbState.optString("adminPassword", "hyperhdr")));
+                if (authRequired) {
+                    boolean tokenValid = reqToken != null && (activeSessionTokens.contains(reqToken) || isSavedApiToken(reqToken));
+                    if (!tokenValid && !"serverinfo".equals(cmd) && !"sysinfo".equals(cmd)) {
+                        resp.put("success", false);
+                        resp.put("error", "No Authorization");
+                        return resp;
+                    }
+                }
+            }
         }
 
         switch (cmd) {
@@ -1199,6 +1272,8 @@ public class HyperHdrServer {
         int targetInst = req.optInt("instance", 0);
         if ("switchTo".equals(sub)) {
             currentInstance = targetInst;
+            dbState.put("currentInstance", currentInstance);
+            saveDatabase();
             JSONObject cfg = getActiveInstanceConfig();
             colorEngine.applyConfig(cfg);
             screenCaptureManager.applyConfig(cfg);
@@ -1696,7 +1771,12 @@ public class HyperHdrServer {
         int b;
         while ((b = is.read()) >= 0) {
             if (b == '\n') break;
-            if (b != '\r') baos.write(b);
+            if (b != '\r') {
+                baos.write(b);
+                if (baos.size() > 8192) {
+                    throw new IOException("HTTP request line exceeded 8KB limit");
+                }
+            }
         }
         if (b < 0 && baos.size() == 0) return null;
         return new String(baos.toByteArray(), StandardCharsets.US_ASCII);

@@ -5,10 +5,13 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.PowerManager;
 
 import org.json.JSONObject;
 
@@ -32,6 +35,8 @@ public class HyperHdrService extends Service {
     private InfiniteColorEngine colorEngine;
     private ScreenCaptureManager screenCaptureManager;
     private HyperHdrServer server;
+    private PowerManager.WakeLock wakeLock;
+    private WifiManager.WifiLock wifiLock;
 
     public static HyperHdrService getInstance() {
         return instance;
@@ -47,6 +52,20 @@ public class HyperHdrService extends Service {
         super.onCreate();
         instance = this;
         createNotificationChannel();
+
+        try {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (pm != null) {
+                wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "HyperHDR:CaptureWakeLock");
+                wakeLock.acquire();
+            }
+            WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            if (wm != null) {
+                wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "HyperHDR:WifiLock");
+                wifiLock.acquire();
+            }
+        } catch (Throwable ignored) {
+        }
 
         wledDriver = new WledDriver();
         colorEngine = new InfiniteColorEngine(wledDriver);
@@ -155,11 +174,6 @@ public class HyperHdrService extends Service {
                     } catch (Throwable ignored) {
                     }
                 }
-                try {
-                    startForeground(NOTIF_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_NONE);
-                    return;
-                } catch (Throwable ignored) {
-                }
             }
             try {
                 startForeground(NOTIF_ID, notification);
@@ -234,6 +248,7 @@ public class HyperHdrService extends Service {
             }
             dev.put("type", "wled");
             dev.put("host", newHost.trim());
+            server.saveDatabase();
             colorEngine.applyConfig(cfg);
             server.appendLog("INFO", "WLED", "Updated WLED target host to " + newHost.trim());
         } catch (Exception ignored) {
@@ -242,8 +257,17 @@ public class HyperHdrService extends Service {
 
     @Override
     public void onDestroy() {
-        if (screenCaptureManager != null) screenCaptureManager.stopCapture();
+        if (screenCaptureManager != null) screenCaptureManager.stop();
+        if (colorEngine != null) colorEngine.stop();
         if (server != null) server.stop();
+        if (wakeLock != null && wakeLock.isHeld()) {
+            try { wakeLock.release(); } catch (Throwable ignored) {}
+            wakeLock = null;
+        }
+        if (wifiLock != null && wifiLock.isHeld()) {
+            try { wifiLock.release(); } catch (Throwable ignored) {}
+            wifiLock = null;
+        }
         instance = null;
         super.onDestroy();
     }
