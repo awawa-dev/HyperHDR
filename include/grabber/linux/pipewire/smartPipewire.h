@@ -15,6 +15,7 @@ namespace PipewirePortal
 {
 	constexpr int ScreenID_ScreenCast = 1;
 	constexpr int ScreenID_RemoteDesktop = 2;
+	constexpr int ScreenID_Gamescope = 3;
 	constexpr int MinRemoteDesktopPortalVersion = 2;
 }
 
