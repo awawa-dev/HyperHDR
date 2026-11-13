@@ -38,6 +38,7 @@ public class MainActivity extends Activity {
 
     private TextView statusText;
     private Button btnCaptureToggle;
+    private Button btnGrabberMode;
     private Button btnWledQuick;
     private Button btnTestEffect;
     private Button btnReloadWeb;
@@ -86,6 +87,10 @@ public class MainActivity extends Activity {
         btnCaptureToggle = createTvButton("Start MediaProjection", Color.rgb(16, 185, 129));
         btnCaptureToggle.setOnClickListener(v -> onToggleScreenCapture());
         topBar.addView(btnCaptureToggle, createBtnParams());
+
+        btnGrabberMode = createTvButton("Grabber Mode", Color.rgb(245, 158, 11));
+        btnGrabberMode.setOnClickListener(v -> showGrabberModeDialog());
+        topBar.addView(btnGrabberMode, createBtnParams());
 
         btnWledQuick = createTvButton("WLED IP / Scan", Color.rgb(59, 130, 246));
         btnWledQuick.setOnClickListener(v -> showWledQuickDialog());
@@ -243,6 +248,73 @@ public class MainActivity extends Activity {
             return;
         }
         requestMediaProjectionConsent();
+    }
+
+    private void showGrabberModeDialog() {
+        HyperHdrService svc = HyperHdrService.getInstance();
+        if (svc == null) return;
+        ScreenCaptureManager scm = svc.getScreenCaptureManager();
+
+        final String[] modeLabels = new String[]{
+                "Lowest / Lag-Free (64x36 ImageReader) — Recommended for AV1 & VP9",
+                "Codec Compatibility (320x180 H.264 MediaCodec)",
+                "Codec Compatibility (640x360 H.264 MediaCodec)",
+                "Low Overhead (128x72 ImageReader)",
+                "Standard (256x144 ImageReader)"
+        };
+
+        int currentIdx = 0;
+        if (scm.getCaptureMethod() == ScreenCaptureManager.METHOD_CODEC) {
+            currentIdx = scm.getCaptureWidth() == 640 ? 2 : 1;
+        } else {
+            if (scm.getCaptureWidth() == 64) currentIdx = 0;
+            else if (scm.getCaptureWidth() == 128) currentIdx = 3;
+            else if (scm.getCaptureWidth() == 256) currentIdx = 4;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Select Grabber Mode & Resolution")
+                .setSingleChoiceItems(modeLabels, currentIdx, (dialog, which) -> {
+                    int method = ScreenCaptureManager.METHOD_IMAGE_READER;
+                    int w = 64, h = 36;
+                    String devName = "Android MediaProjection (Lowest / Lag-Free 64x36)";
+                    switch (which) {
+                        case 0:
+                            method = ScreenCaptureManager.METHOD_IMAGE_READER;
+                            w = 64; h = 36;
+                            devName = "Android MediaProjection (Lowest / Lag-Free 64x36)";
+                            break;
+                        case 1:
+                            method = ScreenCaptureManager.METHOD_CODEC;
+                            w = 320; h = 180;
+                            devName = "Android MediaProjection Codec (H.264 Compatibility 320x180)";
+                            break;
+                        case 2:
+                            method = ScreenCaptureManager.METHOD_CODEC;
+                            w = 640; h = 360;
+                            devName = "Android MediaProjection Codec (H.264 Compatibility 640x360)";
+                            break;
+                        case 3:
+                            method = ScreenCaptureManager.METHOD_IMAGE_READER;
+                            w = 128; h = 72;
+                            devName = "Android MediaProjection (Low 128x72)";
+                            break;
+                        case 4:
+                            method = ScreenCaptureManager.METHOD_IMAGE_READER;
+                            w = 256; h = 144;
+                            devName = "Android MediaProjection (Standard 256x144)";
+                            break;
+                    }
+                    scm.setCaptureModeAndResolution(method, w, h);
+                    if (svc.getServer() != null) {
+                        svc.getServer().saveGrabberDeviceSetting(devName);
+                    }
+                    dialog.dismiss();
+                    Toast.makeText(MainActivity.this, "Active Mode: " + devName, Toast.LENGTH_SHORT).show();
+                    updateStatusBar();
+                })
+                .setNegativeButton("Close", null)
+                .show();
     }
 
     @Override

@@ -182,12 +182,12 @@ public class HyperHdrServer {
             JSONObject sysGrab = cfg.optJSONObject("systemGrabber");
             if (sysGrab == null) {
                 sysGrab = new JSONObject();
-                sysGrab.put("device", "Android MediaProjection API");
+                sysGrab.put("device", "Android MediaProjection (Lowest / Lag-Free 64x36)");
                 cfg.put("systemGrabber", sysGrab);
             }
             String sDev = sysGrab.optString("device", "auto");
             if (sDev.isEmpty() || "auto".equalsIgnoreCase(sDev) || sDev.contains("Pipewire") || sDev.contains("screencap")) {
-                sysGrab.put("device", "Android MediaProjection API");
+                sysGrab.put("device", "Android MediaProjection (Lowest / Lag-Free 64x36)");
             }
 
             JSONObject vidGrab = cfg.optJSONObject("videoGrabber");
@@ -230,6 +230,22 @@ public class HyperHdrServer {
             broadcastWs(compMsg);
             broadcastPrioritiesUpdate();
         } catch (Exception ignored) {
+        }
+    }
+
+    public synchronized void saveGrabberDeviceSetting(String deviceName) {
+        try {
+            JSONObject cfg = getActiveInstanceConfig();
+            if (cfg != null) {
+                JSONObject sysGrab = cfg.optJSONObject("systemGrabber");
+                if (sysGrab == null) {
+                    sysGrab = new JSONObject();
+                    cfg.put("systemGrabber", sysGrab);
+                }
+                sysGrab.put("device", deviceName);
+                saveDatabase();
+            }
+        } catch (Throwable ignored) {
         }
     }
 
@@ -1517,12 +1533,14 @@ public class HyperHdrServer {
 
         // System grabbers — expose Android MediaProjection API as primary selectable device & modes
         JSONObject sysGrabbers = new JSONObject();
-        sysGrabbers.put("device", "Android MediaProjection API");
+        sysGrabbers.put("device", "Android MediaProjection (Lowest / Lag-Free 64x36)");
         JSONArray sysModes = new JSONArray();
-        sysModes.put("Android MediaProjection API");
-        sysModes.put("Android MediaProjection API (Low-Latency 256x144)");
-        sysModes.put("Android MediaProjection API (HD 320x180)");
-        sysModes.put("Android MediaProjection API (Full 640x360)");
+        sysModes.put("Android MediaProjection (Lowest / Lag-Free 64x36)");
+        sysModes.put("Android MediaProjection Codec (H.264 Compatibility 320x180)");
+        sysModes.put("Android MediaProjection Codec (H.264 Compatibility 640x360)");
+        sysModes.put("Android MediaProjection (Low 128x72)");
+        sysModes.put("Android MediaProjection (Standard 256x144)");
+        sysModes.put("Android MediaProjection (HD 320x180)");
         sysGrabbers.put("modes", sysModes);
         info.put("systemGrabbers", sysGrabbers);
 

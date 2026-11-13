@@ -131,7 +131,7 @@
     "led_off_pause": false
   },
   "systemGrabber": {
-    "device": "Android MediaProjection API",
+    "device": "Android MediaProjection (Lowest / Lag-Free 64x36)",
     "videoMode": 512,
     "fps": 30,
     "hdrToneMapping": false,

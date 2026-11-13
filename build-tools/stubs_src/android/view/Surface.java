@@ -1,2 +1,5 @@
 package android.view;
-public class Surface {}
+
+public class Surface {
+    public void release() {}
+}
