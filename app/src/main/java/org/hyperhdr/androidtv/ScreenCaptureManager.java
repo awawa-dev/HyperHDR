@@ -30,9 +30,6 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -61,20 +58,6 @@ public class ScreenCaptureManager {
     public static final int METHOD_IMAGE_READER = 0;
     public static final int METHOD_CODEC = 1;
 
-    private static final int TERMUX_BRIDGE_UDP_PORT = 19446;
-    private static final InetAddress LOOPBACK_ADDR;
-    static {
-        InetAddress addr = null;
-        try {
-            addr = InetAddress.getByAddress(new byte[]{127, 0, 0, 1});
-        } catch (Throwable t) {
-            try {
-                addr = InetAddress.getByName("127.0.0.1");
-            } catch (Throwable ignored) {}
-        }
-        LOOPBACK_ADDR = addr;
-    }
-
     private final Context context;
     private final InfiniteColorEngine colorEngine;
     private FramePreviewListener previewListener;
@@ -84,8 +67,6 @@ public class ScreenCaptureManager {
     private ImageReader imageReader;
     private HandlerThread captureThread;
     private Handler captureHandler;
-    private DatagramSocket bridgeUdpSocket;
-    private byte[] bridgePacketBuf = null;
 
     // Codec compatibility pipeline (scrcpy / hyperion-android-reborn trick)
     private MediaCodec codecEncoder;
@@ -127,7 +108,6 @@ public class ScreenCaptureManager {
     private volatile int[] latestArgbFrame = null;
     private volatile int latestFrameWidth = 0;
     private volatile int latestFrameHeight = 0;
-    private volatile byte[] latestBridgePacket = null;
 
     private long framesInWindow = 0;
     private long windowStartMs = System.currentTimeMillis();
@@ -153,10 +133,6 @@ public class ScreenCaptureManager {
     public ScreenCaptureManager(Context context, InfiniteColorEngine colorEngine) {
         this.context = context.getApplicationContext();
         this.colorEngine = colorEngine;
-        try {
-            this.bridgeUdpSocket = new DatagramSocket();
-        } catch (Exception ignored) {
-        }
         ensureArgbBuffers(captureWidth, captureHeight);
         startFallbackGrabberLoop();
     }
@@ -314,10 +290,6 @@ public class ScreenCaptureManager {
 
     public byte[] getLatestPreviewJpeg() {
         return latestPreviewJpeg;
-    }
-
-    public byte[] getLatestBridgePacket() {
-        return latestBridgePacket;
     }
 
     public synchronized boolean startCapture(int resultCode, Intent data) {
@@ -754,9 +726,6 @@ public class ScreenCaptureManager {
         }
         fallbackScheduler.shutdownNow();
         previewExecutor.shutdownNow();
-        if (bridgeUdpSocket != null && !bridgeUdpSocket.isClosed()) {
-            try { bridgeUdpSocket.close(); } catch (Throwable ignored) {}
-        }
     }
 
     private void startFallbackGrabberLoop() {
@@ -780,8 +749,7 @@ public class ScreenCaptureManager {
             // When MediaProjection is active:
             if (capturing && mediaProjection != null) {
                 // If SurfaceFlinger has not pushed a new buffer in >120ms because the TV screen is static,
-                // keep feeding the most recent frame so LEDs, FPS telemetry, live preview,
-                // and Termux UDP bridge remain continuously active.
+                // keep feeding the most recent frame so LEDs, FPS telemetry, and live preview remain continuously active.
                 if (now - lastSurfaceFrameAtMs >= 120L) {
                     int[] cachedArgb = latestArgbFrame;
                     int cw = latestFrameWidth;
@@ -998,7 +966,6 @@ public class ScreenCaptureManager {
         lastRealFrameAtMs = now;
 
         colorEngine.updateScreenFrame(argb, w, h);
-        publishTermuxBridgeFrame(argb, w, h);
 
         // Memory-optimized preview encoding:
         // Only encode JPEGs when preview is actively requested (web UI open) or throttled to 2000ms when idle.
@@ -1034,44 +1001,6 @@ public class ScreenCaptureManager {
             currentCaptureFps = (framesInWindow * 1000.0) / (now - windowStartMs);
             framesInWindow = 0;
             windowStartMs = now;
-        }
-    }
-
-    private void publishTermuxBridgeFrame(int[] argb, int w, int h) {
-        try {
-            if (bridgeUdpSocket == null || LOOPBACK_ADDR == null) return;
-            // Downscale to 64x36 or 160x90 RGB24
-            int bw = Math.min(160, Math.max(64, w));
-            int bh = Math.min(90, Math.max(36, h));
-            int totalLen = 8 + bw * bh * 3;
-            if (bridgePacketBuf == null || bridgePacketBuf.length != totalLen) {
-                bridgePacketBuf = new byte[totalLen];
-                bridgePacketBuf[0] = 'H';
-                bridgePacketBuf[1] = 'H';
-                bridgePacketBuf[2] = 'M';
-                bridgePacketBuf[3] = 'P';
-                bridgePacketBuf[4] = (byte) ((bw >> 8) & 0xFF);
-                bridgePacketBuf[5] = (byte) (bw & 0xFF);
-                bridgePacketBuf[6] = (byte) ((bh >> 8) & 0xFF);
-                bridgePacketBuf[7] = (byte) (bh & 0xFF);
-            }
-            byte[] pkt = bridgePacketBuf;
-            int idx = 8;
-            for (int dy = 0; dy < bh; dy++) {
-                int sy = (dy * h) / bh;
-                int rowOff = sy * w;
-                for (int dx = 0; dx < bw; dx++) {
-                    int sx = (dx * w) / bw;
-                    int px = argb[rowOff + sx];
-                    pkt[idx++] = (byte) ((px >> 16) & 0xFF);
-                    pkt[idx++] = (byte) ((px >> 8) & 0xFF);
-                    pkt[idx++] = (byte) (px & 0xFF);
-                }
-            }
-            latestBridgePacket = pkt;
-            DatagramPacket dp = new DatagramPacket(pkt, totalLen, LOOPBACK_ADDR, TERMUX_BRIDGE_UDP_PORT);
-            bridgeUdpSocket.send(dp);
-        } catch (Throwable ignored) {
         }
     }
 

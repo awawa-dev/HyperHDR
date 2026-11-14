@@ -48,7 +48,6 @@ public class MainActivity extends Activity {
     private int testModeStep = 0;
     private boolean webLoaded = false;
     private boolean autoCapturePrompted = false;
-    private boolean headlessBridgeRequested = false;
     private boolean permissionDialogPending = false;
 
     private final Runnable statusRefreshRunnable = new Runnable() {
@@ -146,7 +145,6 @@ public class MainActivity extends Activity {
         String action = intent.getAction();
         if (HyperHdrService.ACTION_REQUEST_MEDIA_PROJECTION.equals(action)
                 || intent.getBooleanExtra("auto_projection", false)) {
-            headlessBridgeRequested = intent.getBooleanExtra("headless_bridge", false);
             uiHandler.postDelayed(this::requestMediaProjectionConsent, 250);
         }
     }
@@ -340,10 +338,6 @@ public class MainActivity extends Activity {
                 }
                 updateStatusBar();
                 Toast.makeText(this, "Android MediaProjection API Screen Capture Active!", Toast.LENGTH_LONG).show();
-                if (headlessBridgeRequested) {
-                    headlessBridgeRequested = false;
-                    uiHandler.postDelayed(() -> moveTaskToBack(true), 350);
-                }
             } else {
                 Toast.makeText(this, "MediaProjection screen capture permission was not granted", Toast.LENGTH_SHORT).show();
             }

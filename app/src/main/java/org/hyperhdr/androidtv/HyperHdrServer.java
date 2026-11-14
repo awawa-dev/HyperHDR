@@ -197,7 +197,7 @@ public class HyperHdrServer {
                 cfg.put("videoGrabber", vidGrab);
             }
             String vDev = vidGrab.optString("device", "auto");
-            if (vDev.isEmpty() || "auto".equalsIgnoreCase(vDev) || "Android-MediaProjection-0".equals(vDev) || "Termux-ScreenGrabber-0".equals(vDev)) {
+            if (vDev.isEmpty() || "auto".equalsIgnoreCase(vDev) || "Android-MediaProjection-0".equals(vDev)) {
                 vidGrab.put("device", "Android MediaProjection API");
             }
 
@@ -331,7 +331,7 @@ public class HyperHdrServer {
             try {
                 httpServerSocket.bind(new InetSocketAddress("0.0.0.0", httpPort));
             } catch (Exception bindEx) {
-                // Fallback to 8091 if Termux daemon is already listening on 8090
+                // Fallback to 8091 if port 8090 is occupied
                 httpPort = 8091;
                 httpServerSocket.bind(new InetSocketAddress("0.0.0.0", httpPort));
             }
@@ -553,17 +553,6 @@ public class HyperHdrServer {
 
             if ("/hyperhdr_heart_beat".equals(path)) {
                 writeHttpResponse(os, "200 OK", "text/plain; charset=utf-8", "OK".getBytes(StandardCharsets.UTF_8));
-                sock.close();
-                return;
-            }
-
-            if ("/mediaprojection-frame.rgb".equals(path)) {
-                byte[] pkt = screenCaptureManager.getLatestBridgePacket();
-                if (pkt != null && screenCaptureManager.isMediaProjectionActive()) {
-                    writeHttpResponse(os, "200 OK", "application/octet-stream", pkt);
-                } else {
-                    writeHttpResponse(os, "204 No Content", "text/plain; charset=utf-8", new byte[0]);
-                }
                 sock.close();
                 return;
             }
@@ -868,7 +857,7 @@ public class HyperHdrServer {
                         if (grabberTouched && !screenCaptureManager.isMediaProjectionActive()) {
                             HyperHdrService svc = HyperHdrService.getInstance();
                             if (svc != null) {
-                                svc.requestMediaProjectionFromUi(false);
+                                svc.requestMediaProjectionFromUi();
                             }
                         }
                     }
@@ -881,7 +870,7 @@ public class HyperHdrServer {
                     screenCaptureManager.stopCapture();
                     notifyGrabberStateChanged();
                 } else if (mpSvc != null) {
-                    mpSvc.requestMediaProjectionFromUi(req.optBoolean("headless_bridge", false));
+                    mpSvc.requestMediaProjectionFromUi();
                 }
                 JSONObject mpInfo = new JSONObject();
                 mpInfo.put("active", screenCaptureManager.isMediaProjectionActive());
@@ -916,7 +905,7 @@ public class HyperHdrServer {
                         if (!screenCaptureManager.isMediaProjectionActive()) {
                             HyperHdrService svc = HyperHdrService.getInstance();
                             if (svc != null) {
-                                svc.requestMediaProjectionFromUi(false);
+                                svc.requestMediaProjectionFromUi();
                             }
                         }
                     }

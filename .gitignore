@@ -53,4 +53,3 @@ local.properties
 # Scratch, audit, and temporary package files
 .bug-hunter/
 grabber.apk
-deb-resources/*.deb

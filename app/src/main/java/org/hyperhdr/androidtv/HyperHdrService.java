@@ -91,7 +91,7 @@ public class HyperHdrService extends Service {
                     startMediaProjectionCapture(resultCode, data);
                 } else {
                     server.appendLog("ERROR", "GRABBER", "MediaProjection intent data was null; requesting permission dialog");
-                    requestMediaProjectionFromUi(false);
+                    requestMediaProjectionFromUi();
                 }
             } else if (ACTION_STOP_CAPTURE.equals(action)) {
                 screenCaptureManager.stopCapture();
@@ -101,7 +101,7 @@ public class HyperHdrService extends Service {
                     server.notifyGrabberStateChanged();
                 }
             } else if (ACTION_REQUEST_MEDIA_PROJECTION.equals(action)) {
-                requestMediaProjectionFromUi(intent.getBooleanExtra("headless_bridge", false));
+                requestMediaProjectionFromUi();
             }
         }
         return START_STICKY;
@@ -138,7 +138,7 @@ public class HyperHdrService extends Service {
         return ok;
     }
 
-    public void requestMediaProjectionFromUi(boolean headlessBridge) {
+    public void requestMediaProjectionFromUi() {
         try {
             if (screenCaptureManager != null && screenCaptureManager.isMediaProjectionActive()) {
                 return;
@@ -150,7 +150,6 @@ public class HyperHdrService extends Service {
             }
             Intent reqIntent = new Intent(this, MainActivity.class);
             reqIntent.setAction(ACTION_REQUEST_MEDIA_PROJECTION);
-            reqIntent.putExtra("headless_bridge", headlessBridge);
             reqIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(reqIntent);
             if (server != null) {
