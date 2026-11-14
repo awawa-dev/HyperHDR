@@ -51,21 +51,136 @@
 
 #ifdef MACOS_SCK
 	#import <ScreenCaptureKit/ScreenCaptureKit.h>
+	#import <CoreMedia/CoreMedia.h>
+	#import <CoreVideo/CoreVideo.h>
+	#include <mutex>
+	#include <algorithm>
+
+	@class ScreenStreamOutput;
 #endif
 
 namespace
 {
 	id activity;
 	#ifdef MACOS_SCK
-		CGColorSpaceRef colorSpaceRgb = nil;
+		ScreenStreamOutput* streamOutput = nil;
 	#endif
 };
+
+#ifdef MACOS_SCK
+
+// Receives frames from the persistent SCStream on its own dispatch queue and keeps only the latest complete one.
+// The owning grabber is detached (set to nullptr) under the lock before it stops the stream or gets destroyed.
+@interface ScreenStreamOutput : NSObject<SCStreamOutput, SCStreamDelegate>
+{
+@public
+	std::mutex			_lock;
+	macOsGrabber*		_grabber;
+	quint64				_generation;
+	SCStream*			_stream;
+	CVPixelBufferRef	_latestFrame;
+	dispatch_queue_t	_sequencer;
+}
+- (CVPixelBufferRef)copyLatestFrame;
+- (void)reportFailure:(NSString*)message;
+@end
+
+@implementation ScreenStreamOutput
+
+- (instancetype)init
+{
+	self = [super init];
+	if (self)
+	{
+		_grabber = nullptr;
+		_generation = 0;
+		_stream = nil;
+		_latestFrame = nullptr;
+		_sequencer = dispatch_queue_create("HyperHDR.macOsGrabber", dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INTERACTIVE, 0));
+	}
+	return self;
+}
+
+- (void)dealloc
+{
+	if (_latestFrame != nullptr)
+		CVPixelBufferRelease(_latestFrame);
+	[_stream release];
+	dispatch_release(_sequencer);
+	[super dealloc];
+}
+
+- (void)stream:(SCStream*)stream didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer ofType:(SCStreamOutputType)type
+{
+	if (type != SCStreamOutputTypeScreen || !CMSampleBufferIsValid(sampleBuffer))
+		return;
+
+	// skip idle/blank/suspended notifications: they carry no new image
+	CFArrayRef attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, false);
+	if (attachments == nullptr || CFArrayGetCount(attachments) < 1)
+		return;
+
+	NSDictionary* info = (NSDictionary*)CFArrayGetValueAtIndex(attachments, 0);
+	NSNumber* status = info[SCStreamFrameInfoStatus];
+	if (status == nil || status.integerValue != SCFrameStatusComplete)
+		return;
+
+	CVPixelBufferRef frame = CMSampleBufferGetImageBuffer(sampleBuffer);
+	if (frame == nullptr)
+		return;
+
+	CVPixelBufferRetain(frame);
+
+	CVPixelBufferRef previous;
+	{
+		std::lock_guard<std::mutex> lock(_lock);
+		previous = _latestFrame;
+		_latestFrame = frame;
+	}
+
+	if (previous != nullptr)
+		CVPixelBufferRelease(previous);
+}
+
+- (void)stream:(SCStream*)stream didStopWithError:(NSError*)error
+{
+	[self reportFailure:[NSString stringWithFormat:@"Capture stream stopped: %@", error.localizedDescription]];
+}
+
+- (CVPixelBufferRef)copyLatestFrame
+{
+	std::lock_guard<std::mutex> lock(_lock);
+	if (_latestFrame != nullptr)
+		CVPixelBufferRetain(_latestFrame);
+	return _latestFrame;
+}
+
+- (void)reportFailure:(NSString*)message
+{
+	std::lock_guard<std::mutex> lock(_lock);
+	if (_grabber != nullptr)
+	{
+		QMetaObject::invokeMethod(_grabber, "streamFailed", Qt::QueuedConnection,
+			Q_ARG(quint64, _generation), Q_ARG(QString, QString::fromNSString(message)));
+	}
+}
+
+@end
+
+#endif
 
 
 macOsGrabber::macOsGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "MACOS_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
 	, _actualDisplay(0)
+	, _nativeCropLeft(0)
+	, _nativeCropRight(0)
+	, _nativeCropTop(0)
+	, _nativeCropBottom(0)
+	, _streamGeneration(0)
+	, _streamNativeWidth(0)
+	, _streamPointSize(CGSizeZero)
 {
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &macOsGrabber::grabFrame);
@@ -110,13 +225,7 @@ void macOsGrabber::uninit()
 		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 
-	#ifdef MACOS_SCK
-		if (colorSpaceRgb)
-		{
-			CGColorSpaceRelease(colorSpaceRgb);
-			colorSpaceRgb = nil;
-		}
-	#endif
+	stopStream();
 
 	_actualDisplay = 0;
 
@@ -141,13 +250,6 @@ bool macOsGrabber::init()
 			Debug(_log, "Device {:s} is not available. Changing to auto.", (_deviceName));
 			autoDiscovery = true;
 		}
-
-		#ifdef MACOS_SCK
-			if (!colorSpaceRgb)
-			{
-				colorSpaceRgb = CGColorSpaceCreateDeviceRGB();
-			}
-		#endif
 
 		if (autoDiscovery)
 		{
@@ -226,6 +328,7 @@ bool macOsGrabber::start()
 	{		
 		if (init())
 		{
+			startStream();
 			_timer.setInterval(1000/_fps);
 			_timer.start();
 			Info(_log, "Started");
@@ -245,8 +348,162 @@ void macOsGrabber::stop()
 	if (_initialized)
 	{
 		_timer.stop();
+		stopStream();
 		Info(_log, "Stopped");
 	}
+}
+
+void macOsGrabber::startStream()
+{
+	#ifdef MACOS_SCK
+		stopStream();
+
+		CGDisplayModeRef displayReference = CGDisplayCopyDisplayMode(_actualDisplay);
+		if (displayReference == nullptr)
+		{
+			QMetaObject::invokeMethod(this, "streamFailed", Qt::QueuedConnection,
+				Q_ARG(quint64, _streamGeneration), Q_ARG(QString, QString("Could not read the display mode")));
+			return;
+		}
+		size_t nativeWidth = CGDisplayModeGetPixelWidth(displayReference);
+		size_t nativeHeight = CGDisplayModeGetPixelHeight(displayReference);
+		CGDisplayModeRelease(displayReference);
+
+		// let ScreenCaptureKit scale on the GPU to the configured max width instead of copying full native frames
+		size_t outputWidth = nativeWidth;
+		size_t outputHeight = nativeHeight;
+		if (_width > 0 && static_cast<size_t>(_width) < nativeWidth)
+		{
+			outputWidth = static_cast<size_t>(_width);
+			outputHeight = (nativeHeight * outputWidth + nativeWidth / 2) / nativeWidth;
+		}
+		outputWidth = std::max<size_t>(2, outputWidth & ~static_cast<size_t>(1));
+		outputHeight = std::max<size_t>(2, outputHeight & ~static_cast<size_t>(1));
+
+		_streamNativeWidth = nativeWidth;
+		_streamPointSize = CGDisplayBounds(_actualDisplay).size;
+
+		quint64 generation = ++_streamGeneration;
+		CGDirectDisplayID displayId = _actualDisplay;
+		int fps = std::max(1, _fps);
+
+		streamOutput = [ScreenStreamOutput new];
+		streamOutput->_grabber = this;
+		streamOutput->_generation = generation;
+
+		Debug(_log, "Creating capture stream {:d}x{:d} (native: {:d}x{:d}) @ {:d} fps", outputWidth, outputHeight, nativeWidth, nativeHeight, fps);
+
+		ScreenStreamOutput* output = streamOutput;
+
+		[SCShareableContent getShareableContentExcludingDesktopWindows:YES onScreenWindowsOnly:YES completionHandler:^(SCShareableContent* content, NSError* error)
+		{
+			if (error != nil)
+			{
+				[output reportFailure:[NSString stringWithFormat:@"Could not get shareable content (permission not granted?): %@", error.localizedDescription]];
+				return;
+			}
+
+			SCDisplay* target = nil;
+			for (SCDisplay* display in content.displays)
+			{
+				if (display.displayID == displayId)
+				{
+					target = display;
+					break;
+				}
+			}
+
+			if (target == nil)
+			{
+				[output reportFailure:@"Could not find the selected display"];
+				return;
+			}
+
+			std::lock_guard<std::mutex> lock(output->_lock);
+
+			// the grabber was stopped while we were waiting
+			if (output->_grabber == nullptr)
+				return;
+
+			SCContentFilter* filter = [[SCContentFilter alloc] initWithDisplay:target excludingWindows:@[]];
+			SCStreamConfiguration* streamConfig = [[SCStreamConfiguration alloc] init];
+
+			streamConfig.width = outputWidth;
+			streamConfig.height = outputHeight;
+			streamConfig.minimumFrameInterval = CMTimeMake(1, fps);
+			streamConfig.pixelFormat = kCVPixelFormatType_32BGRA;
+			streamConfig.queueDepth = 3;
+
+			SCStream* stream = [[SCStream alloc] initWithFilter:filter configuration:streamConfig delegate:output];
+
+			[streamConfig release];
+			[filter release];
+
+			NSError* outputError = nil;
+			if (![stream addStreamOutput:output type:SCStreamOutputTypeScreen sampleHandlerQueue:output->_sequencer error:&outputError])
+			{
+				[stream release];
+				QMetaObject::invokeMethod(output->_grabber, "streamFailed", Qt::QueuedConnection,
+					Q_ARG(quint64, output->_generation), Q_ARG(QString, QString::fromNSString(outputError.localizedDescription)));
+				return;
+			}
+
+			output->_stream = stream;
+
+			[stream startCaptureWithCompletionHandler:^(NSError* startError)
+			{
+				if (startError != nil)
+				{
+					[output reportFailure:[NSString stringWithFormat:@"Could not start the capture stream: %@", startError.localizedDescription]];
+				}
+			}];
+		}];
+	#endif
+}
+
+void macOsGrabber::stopStream()
+{
+	#ifdef MACOS_SCK
+		if (streamOutput == nil)
+			return;
+
+		ScreenStreamOutput* output = streamOutput;
+		streamOutput = nil;
+		_streamGeneration++;
+
+		SCStream* stream = nil;
+		{
+			std::lock_guard<std::mutex> lock(output->_lock);
+			output->_grabber = nullptr;
+			stream = output->_stream;
+			output->_stream = nil;
+		}
+
+		if (stream != nil)
+		{
+			// ownership of the stream and the output moves to the completion handler
+			[stream stopCaptureWithCompletionHandler:^(NSError* error)
+			{
+				[stream release];
+				[output release];
+			}];
+		}
+		else
+			[output release];
+
+		Debug(_log, "Capture stream released");
+	#endif
+}
+
+void macOsGrabber::streamFailed(quint64 generation, QString message)
+{
+	if (generation != _streamGeneration)
+		return;
+
+	Error(_log, "{:s}", message);
+
+	uninit();
+	QTimer::singleShot(3000, this, &macOsGrabber::start);
 }
 
 bool macOsGrabber::init_device(QString selectedDeviceName)
@@ -273,66 +530,44 @@ void macOsGrabber::decodeFrame(CGImageRef capturedImage)
 
 void macOsGrabber::grabFrame()
 {	
-	#ifdef MACOS_SCK		
-		[SCShareableContent getShareableContentWithCompletionHandler:^(SCShareableContent* content, NSError* error)
-		{	
-			SCDisplay* target = nil;
-			for (SCDisplay *display in content.displays)
+	#ifdef MACOS_SCK
+		// the display mode has changed: rebuild the stream for the new geometry
+		if (!CGSizeEqualToSize(CGDisplayBounds(_actualDisplay).size, _streamPointSize))
+		{
+			Info(_log, "Display mode has changed. Rebuilding the capture stream");
+			startStream();
+			return;
+		}
+
+		CVPixelBufferRef frame = (streamOutput != nil) ? [streamOutput copyLatestFrame] : nullptr;
+
+		if (frame == nullptr)
+			return;
+
+		if (CVPixelBufferLockBaseAddress(frame, kCVPixelBufferLock_ReadOnly) == kCVReturnSuccess)
+		{
+			_actualWidth = static_cast<int>(CVPixelBufferGetWidth(frame));
+			_actualHeight = static_cast<int>(CVPixelBufferGetHeight(frame));
+
+			// cropping is configured in native pixels but the stream is already scaled down
+			if (_streamNativeWidth > 0)
 			{
-				if (display.displayID == _actualDisplay)
-				{
-					target = display;
-					break;
-				}
+				_cropLeft = static_cast<int>(_nativeCropLeft * _actualWidth / _streamNativeWidth);
+				_cropRight = static_cast<int>(_nativeCropRight * _actualWidth / _streamNativeWidth);
+				_cropTop = static_cast<int>(_nativeCropTop * _actualWidth / _streamNativeWidth);
+				_cropBottom = static_cast<int>(_nativeCropBottom * _actualWidth / _streamNativeWidth);
 			}
-			if (!target)
-			{
-				uninit();
-				QTimer::singleShot(3000, this, &macOsGrabber::start);
-			}
-			else
-			{
-				CGDisplayModeRef displayReference = CGDisplayCopyDisplayMode(_actualDisplay);
-				double scaleAspect = CGDisplayModeGetPixelWidth(displayReference)/static_cast<double>(CGDisplayModeGetWidth(displayReference));
-				CGDisplayModeRelease(displayReference);	
 
-				CGRect displayBounds = CGDisplayBounds(_actualDisplay);
+			uint8_t* rawData = static_cast<uint8_t*>(CVPixelBufferGetBaseAddress(frame));
+			size_t bytesPerRow = CVPixelBufferGetBytesPerRow(frame);
 
-				SCContentFilter* filter = [[SCContentFilter alloc] initWithDisplay:target excludingWindows:@[]];
-				SCStreamConfiguration* streamConfig = [[SCStreamConfiguration alloc] init];
+			if (rawData != nullptr)
+				processSystemFrameBGRA(rawData, static_cast<int>(bytesPerRow));
 
-				streamConfig.width = displayBounds.size.width * scaleAspect;
-				streamConfig.height = displayBounds.size.height * scaleAspect;
-				streamConfig.sourceRect = displayBounds;
-				streamConfig.sourceRect = CGRectMake(0, 0, displayBounds.size.width, displayBounds.size.height);
-				streamConfig.captureResolution = SCCaptureResolutionBest;
-				streamConfig.scalesToFit = false;
-				streamConfig.queueDepth = 1;
+			CVPixelBufferUnlockBaseAddress(frame, kCVPixelBufferLock_ReadOnly);
+		}
 
-				[SCScreenshotManager captureImageWithFilter:filter
-					configuration:streamConfig
-					completionHandler:^(CGImageRef sourceImg, NSError* error)
-					{
-						if (!error)
-						{							
-							CGImageRef capturedImage = CGImageCreateCopyWithColorSpace(sourceImg, colorSpaceRgb);
-
-							decodeFrame(capturedImage);
-
-							CGImageRelease(capturedImage);
-						}
-						else if (error)
-						{
-							QString errorMessage = QString::fromNSString([error localizedDescription]);
-							Error(_log, "captureImageWithFilter Error: {:s}", errorMessage);
-						}
-					}
-				];
-
-				[streamConfig release];
-				[filter release];
-			}
-		}];
+		CVPixelBufferRelease(frame);
 	#else
 		bool stopNow = false;
 		CGImageRef display;
@@ -366,4 +601,9 @@ void macOsGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned c
 	_cropRight = cropRight;
 	_cropTop = cropTop;
 	_cropBottom = cropBottom;
+
+	_nativeCropLeft = cropLeft;
+	_nativeCropRight = cropRight;
+	_nativeCropTop = cropTop;
+	_nativeCropBottom = cropBottom;
 }
