@@ -20,7 +20,7 @@
 		"time": {
 			"type" : "integer",
 			"minimum" : 25,
-			"maximum" : 5000,
+			"maximum" : 60000,
 			"required": true
 		}
 	},
