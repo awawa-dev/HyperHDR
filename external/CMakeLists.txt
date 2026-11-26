@@ -2,50 +2,65 @@
 # SQLite
 #=============================================================================
 
-if (NOT USE_SHARED_LIBS)
-	add_library(sqlite3 "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
-else()
-	add_library(sqlite3 SHARED "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
-	if(WIN32)
-	   target_compile_definitions(sqlite3
-		  INTERFACE
-			 "SQLITE_API=__declspec(dllimport)"
-		  PRIVATE
-			 "SQLITE_API=__declspec(dllexport)"
-	   )
-	else()
-	   target_compile_definitions(sqlite3
-		  INTERFACE
-			 "SQLITE_API=__attribute__((visibility(\"default\")))"
-	   )
-	endif()
-endif()
+add_library(sqlite3 STATIC "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
 
 target_include_directories(sqlite3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/sqlite")
-target_link_libraries(sqlite3 PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
-install(
-    TARGETS   sqlite3
-    LIBRARY   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    ARCHIVE   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-)
-
-set_target_properties(sqlite3 PROPERTIES
-    OUTPUT_NAME   sqlite3
-)
+target_link_libraries(sqlite3 PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
 target_compile_definitions(sqlite3 PUBLIC
-	SQLITE_THREADSAFE=2
-	SQLITE_DEFAULT_MEMSTATUS=0
-	SQLITE_DEFAULT_SYNCHRONOUS=3
-	SQLITE_OMIT_AUTHORIZATION
-	SQLITE_OMIT_DEPRECATED
+    SQLITE_THREADSAFE=2
+)
+
+target_compile_definitions(sqlite3 PRIVATE
+    -DSQLITE_DEFAULT_MEMSTATUS=0
+    -DSQLITE_DEFAULT_SYNCHRONOUS=3
+    -DSQLITE_DQS=0
+    -DSQLITE_LIKE_DOESNT_MATCH_BLOBS
+    -DSQLITE_MAX_EXPR_DEPTH=0
+
+    -DSQLITE_OMIT_ANALYZE
+    -DSQLITE_OMIT_AUTHORIZATION
+    -DSQLITE_OMIT_AUTOINCREMENT
+    -DSQLITE_OMIT_COMPILEOPTION_DIAGS
+    -DSQLITE_OMIT_COMPLETE
+    -DSQLITE_OMIT_COMPOUND_SELECT
+    -DSQLITE_OMIT_CTE
+    -DSQLITE_OMIT_DATETIME_FUNCS
+    -DSQLITE_OMIT_DECLTYPE
+    -DSQLITE_OMIT_DEPRECATED
+    -DSQLITE_OMIT_DESERIALIZE
+    -DSQLITE_OMIT_EXPLAIN
+    -DSQLITE_OMIT_GET_TABLE
+    -DSQLITE_OMIT_INCRBLOB
+    -DSQLITE_OMIT_INTROSPECTION_PRAGMAS
+    -DSQLITE_OMIT_JSON
+    -DSQLITE_OMIT_LOAD_EXTENSION
+    -DSQLITE_OMIT_PROGRESS_CALLBACK
+    -DSQLITE_OMIT_REINDEX
+    -DSQLITE_OMIT_TCL_VARIABLE
+    -DSQLITE_OMIT_TRACE
+    -DSQLITE_OMIT_UTF16
+    -DSQLITE_OMIT_WINDOWFUNC
+
+    -DSQLITE_OMIT_FOREIGNKEY
+    -DSQLITE_OMIT_TRIGGER
+    -DSQLITE_OMIT_VIEW
+    -DSQLITE_OMIT_UPSERT
+    -DSQLITE_OMIT_GENERATED_COLUMNS
+    -DSQLITE_OMIT_INTEGRITY_CHECK
 )
 
 if(MSVC)
-    target_compile_options(sqlite3 PRIVATE /W0)
+	target_compile_options(sqlite3 PRIVATE
+		/W0
+		$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>:/O1>
+	)
 else()
-    target_compile_options(sqlite3 PRIVATE -w)
+	target_compile_options(sqlite3 PRIVATE
+		-w
+		$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>:-Os>
+	)
 endif()
 
 #=============================================================================
