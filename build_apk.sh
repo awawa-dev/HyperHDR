@@ -13,10 +13,25 @@ if [ -z "${JAVA_HOME:-}" ]; then
 fi
 export PATH="${JAVA_HOME:+$JAVA_HOME/bin:}$PATH"
 
-GRADLE_CACHE="${GRADLE_USER_HOME:-$HOME/.gradle}/caches"
-AAPT2="${AAPT2:-$(find "$GRADLE_CACHE" -name "aapt2" -type f 2>/dev/null | head -n 1)}"
-BUNDLETOOL="${BUNDLETOOL:-$(find "$GRADLE_CACHE" -name "bundletool-*.jar" -type f 2>/dev/null | head -n 1)}"
-APKSIG="${APKSIG:-$(find "$GRADLE_CACHE" -name "apksig-*.jar" -type f 2>/dev/null | head -n 1)}"
+find_tool() {
+    local pattern="$1"
+    shift
+    for d in "$@"; do
+        if [ -d "$d" ]; then
+            local found
+            found="$(find "$d" -name "$pattern" -type f 2>/dev/null | head -n 1 || true)"
+            if [ -n "$found" ]; then
+                echo "$found"
+                return 0
+            fi
+        fi
+    done
+    return 0
+}
+
+AAPT2="${AAPT2:-$(find_tool "aapt2" "$HOME/Library/Android/sdk/build-tools" "${GRADLE_USER_HOME:-$HOME/.gradle}/caches")}"
+BUNDLETOOL="${BUNDLETOOL:-$(find_tool "bundletool-*.jar" "$HOME/.gemini/users" "${GRADLE_USER_HOME:-$HOME/.gradle}/caches")}"
+APKSIG="${APKSIG:-$(find_tool "apksig-*.jar" "$HOME/.gemini/users" "${GRADLE_USER_HOME:-$HOME/.gradle}/caches")}"
 KEYSTORE="${ANDROID_KEYSTORE:-$PROJ_DIR/build-tools/hyperhdr-release.jks}"
 
 BUILD_TMP="$PROJ_DIR/app/build/manual_build"
