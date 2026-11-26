@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px" viewBox="1 1 22 22" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M12 6l0 -3 M16.25 7.75l2.15 -2.15 M18 12l3 0 M16.25 16.25l2.15 2.15 M12 18l0 3 M7.75 16.25l-2.15 2.15 M6 12l-3 0 M7.75 7.75l-2.15 -2.15" >
+  <animateTransform
+      attributeName="transform"
+      attributeType="XML"
+      type="rotate"
+      from="0 12 12"
+      to="360 12 12"
+      dur="3s"
+      repeatCount="indefinite" />
+
+  </path>
+
+</svg>

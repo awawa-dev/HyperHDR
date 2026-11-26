@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" height="76" viewBox="100 -860 760 760" width="76">
+<path d="M160-400Q160-505 210-587T320-725Q380-781 430-810.5L480-840V-708Q480-671 505-649.5T561-628Q578-628 593.5-635T622-658L640-680Q712-638 756-563.5T800-400Q800-312 757-239.5T644-125Q661-149 670.5-177.5T680-238Q680-278 665-313.5T622-377L480-516 339-377Q310-348 295-313T280-238Q280-206 289.5-177.5T316-125Q246-167 203-239.5T160-400Z">
+<animate attributeName="fill" values="red;orange;red" dur="1s" repeatCount="indefinite" />
+</path>
+<path d="M480-404 565-321Q582-304 591-283T600-238Q600-189 565-154.5T480-120Q430-120 395-154.5T360-238Q360-261 369-282.5T395-321L480-404Z">
+<animate attributeName="fill" values="orange;red;orange" dur="1s" repeatCount="indefinite" />
+</path>
+</svg>

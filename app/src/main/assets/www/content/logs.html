@@ -1,0 +1,28 @@
+<div id="hyper-subpage" class="container-fluid" style="float:left;">
+	<div class="row">
+		<div class="col-lg-12">
+			<h3 class="page-header"><svg data-src="svg/logs.svg" width="28" height="28" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="main_menu_logging_token">Log</span></h3>
+			<div id="log_head"></div>
+			<div id="log_content">
+				<span id="has_no_logs" style="font-weight: bold; font-size: 17px;" data-i18n="conf_logging_nomessage"></span>
+				<div id="has_logs" class="d-none">
+					<pre id="logmessages" style="overflow: scroll;" class="callout">
+					</pre>
+					<button class="btn btn-primary btn-danger" id="btn_autoscroll">
+						<svg data-src="svg/button_autorefresh.svg" data-unique-ids="disabled" fill="currentColor" class="svg4hyperhdr"></svg>
+						<span data-i18n="conf_logging_btn_autoscroll"></span>
+					</button>
+					<button class="btn btn-primary" id="btn_copylogs">
+						<svg data-src="svg/button_clipboard.svg" data-unique-ids="disabled" fill="currentColor" class="svg4hyperhdr"></svg>
+						<span data-i18n="copy_to_clipboard"></span>
+					</button>
+				</div>
+			</div>
+			<hr />
+		</div>
+	</div>
+</div>
+
+<script>
+$.getScript("/js/logs.js");
+</script>

@@ -1,0 +1,121 @@
+<div class="container" style="margin: 20px auto; max-width: 600px;">
+	<center>
+		<img
+			id = "no_connection_img"		
+			alt = "Hmmm...lost the connection to HyperHDR"
+			style = "width : 90%; height: auto; transition: all 0.1s ease;"
+		/>
+		<div>
+			<h2 data-i18n="info_conlost_label_title">Lost connection to HyperHDR service!</h2>
+			<hr />
+			<h4 data-i18n="info_conlost_label_reason">Possible reasons:</h4>
+			<p data-i18n="info_conlost_label_reason1">- HyperHDR restarts</p>
+			<p data-i18n="info_conlost_label_reason3">- HyperHDR isn't running</p>
+			<hr />
+			<svg id="no_connection_spinner" data-src="svg/spinner_large.svg" fill="currentColor" class="svg4hyperhdr mb-1"></svg><br>
+			<h4 class="reconstop" data-i18n="info_conlost_label_autorefresh">This page will be automatically refreshed.</h4>
+			<h4 class="reconstop" data-i18n="info_conlost_label_autorecon">We reconnect again after HyperHDR is available.</h4>
+			<span id="counter" class="reconstop"></span>
+			<a class="reconstop" style="display: none;" href="/" data-i18n="info_conlost_label_reload"></a>
+		</div>
+	</center>
+</div>
+
+<!-- ************************************ -->
+
+<script>
+	performTranslation();
+	var connectionLost = false;
+	var connectionTimer;
+	var animationTimer;
+	var count = 1;
+	var reconnectInterval = 2000;
+	var connURL = window.location.protocol + "//" + window.location.hostname + ":" + window.jsonPort + window.location.pathname + window.location.hash;
+	var animation = -1;
+	var animation_value = 0;
+	var animation_target = 0;
+  
+	function animate() {
+
+		if (animation < 0)
+		{
+			animation = 0;		
+			animation_target = Math.round(10+(Math.random()* 80));
+			animation_value = 0;
+		}
+		else if (animation < 15) {
+			if (Math.round(Math.random()* 100) < 15)
+			{
+				if ( animation_value <= 50 )
+					animation_value = 0;
+				else
+					animation_value -= 50;
+			}
+			else
+			{
+				animation_value = animation_target + Math.round(Math.random()* 20) - 10;
+				if (animation_value < 0) 
+					animation_value = 0;
+				if (animation_value > 100) 
+					animation_value = 100;				
+			}
+			animation++;
+		}
+		else 
+			animation = -1;
+
+		if (!connectionLost)
+		{
+			$('#no_connection_img').css('filter', '');
+			window.clearInterval(animationTimer);
+		}
+		else if (count > 100)
+		{			
+			animation_value = 100;
+			$('#no_connection_img').css('filter', 'grayscale('+animation_value+'%) contrast('+(100-(animation_value*3/4))+'%) opacity('+(100-(animation_value)/5)+'%)');
+			window.clearInterval(animationTimer);
+		}
+		else
+			$('#no_connection_img').css('filter', 'grayscale('+animation_value+'%) contrast('+(100-(animation_value*3/4))+'%) opacity('+(100-(animation_value)/5)+'%)');
+	};
+
+	function tryReconnect() {
+		if (count > 100) {
+			window.clearInterval(connectionTimer);
+			$(".reconstop").toggle();
+			$('#no_connection_spinner').addClass('d-none');
+		}
+
+		$("#counter").html(count + "/100");
+
+		$.ajax({ url: connURL })
+			.done(function (data) {
+				window.clearInterval(connectionTimer);
+				if (reconnectInterval < 2000) {
+					let url = connURL;
+					if (window.connURL.includes("#")) url = window.connURL.slice(0, window.connURL.indexOf("#"));
+					window.location.replace(url);
+				} else {
+					window.location.reload();
+				}
+			})
+			.fail(function (jqXHR, textStatus) {
+				count++;
+			});
+	}
+
+	function connectionLostAction() {
+		if (!connectionLost) {
+			connectionLost = true;
+			// if we changed the webui port we connect faster
+			if (window.fastReconnect) {
+				window.fastReconnect = false;
+				reconnectInterval = 1000;
+			}
+			$('#no_connection_spinner').removeClass('d-none');
+			connectionTimer = window.setInterval(tryReconnect, reconnectInterval);
+			animationTimer = window.setInterval(animate, 100);
+		}
+	}
+</script>
+

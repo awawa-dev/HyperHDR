@@ -89,3 +89,44 @@ Fresh daily builds shipped at π time (3:14 UTC) whenever we have something new.
 
 Released under the MIT License  
 [![GitHub license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/awawa-dev/HyperHDR/master/LICENSE)
+
+---
+
+# HyperHDR v24.0.0-beta.0 — Native Android TV Ambient Lighting App
+
+Pure standalone native Android TV application (`org.hyperhdr.androidtv`), bundling all **226 Web UI files** (`web_resources.rcc`) and **123 embedded JSON configuration schemas** (including new HID drivers `lightpack`, `paintpack`, `rawhid`, `synclight` under `leds_group_6_HID` and `sp616e` serial driver) with dual-engine Android TV screen grabbing (`MediaCodec` hardware pipeline & `MediaProjection` API, fallback `screencap`, `FlatBuffers :19400`, `Protobuf :19445`, and `JSON-RPC image :19444`), the Infinite Color Engine, and WLED UDP (`21324` DRGB/DNRGB & `4048` DDP) + LAN discovery.
+
+## Screen Capture Architecture & Features (v24.0.0-beta.0)
+
+* **Dual-Engine Screen Grabber**:
+  * **MediaCodec Hardware Pipeline (Default)**: Uses Android's native hardware video surfaces with lowest capture resolution (`64x36`) and zero-allocation reusable pixel buffers, eliminating video stutter when playing 1080p VP9 or AV1 video on Android TV SoCs.
+  * **ImageReader Surface Capture**: Direct `RGBA_8888` pixel reading with forced opaque alpha (`0xFF000000`) to prevent black frames on `SurfaceFlinger` hardware video overlays.
+  * **TV Remote Grabber Switcher**: Switch capture engines or toggle between 64x36 and 160x90 capture resolution directly via TV remote control or the Web UI.
+* **Automatic `MediaProjection` Consent & Multi-Flag VirtualDisplay**: Automatically prompts for Android TV `MediaProjection` permission on launch (or via the **Start TV Capture** button) and creates the `VirtualDisplay` with `VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR | VIRTUAL_DISPLAY_FLAG_PUBLIC | VIRTUAL_DISPLAY_FLAG_PRESENTATION` (with automatic fallback) so all TV surfaces mirror reliably.
+* **Native `screencap` Fallback + External Network Grabbers**: Includes a background `/system/bin/screencap` raw frame fallback if `MediaProjection` is idle, plus full TCP listeners for **FlatBuffers (`:19400`)**, **Protobuf (`:19445`)**, and **JSON-RPC `image` (`:19444` / `:8090`)**.
+* **Zero External Dependencies**: Runs entirely within the Android TV APK with built-in HTTP/WebSocket Web UI server on port `8090`. No Termux, root, or command-line daemons required.
+
+## Default Password & Authentication Behavior
+
+* **Default First-Time Password**: `hyperhdr`
+* **First-Time Login Flow**:
+  * On a fresh installation (while the password is still the default `hyperhdr`), `authorize-newPasswordRequired` returns `true`. The Web UI automatically logs in using `hyperhdr`, displays the warning banner prompting you to change the default password, and pre-fills `hyperhdr` as the current password in the **Change Password** dialog.
+* **After Changing the Password**:
+  * Change the password via the sidebar **Change Password** button (minimum 8 characters).
+  * Once changed, `defaultPasswordSet` becomes `false` and all previous session tokens are immediately invalidated.
+  * Every new browser session, page reload after locking (`Lock UI`), or unauthenticated WebSocket connection is required to sign in on the **Login** screen with your new password before any configuration or server commands (`config`, `serverinfo`, `instance`, `componentstate`, etc.) are allowed.
+* **Resetting Forgotten Password**:
+  * Clear app data in Android TV Settings (`adb shell pm clear org.hyperhdr.androidtv`) or delete `/data/data/org.hyperhdr.androidtv/files/hyperhdr_db.json`.
+
+## Build and Installation
+
+* **Signed APK**: `HyperHDR-v24.0.0-beta.0-AndroidTV.apk`
+* **Rebuild APK**:
+  ```bash
+  ./build_apk.sh
+  ```
+* **Install via ADB**:
+  ```bash
+  adb connect <tv-ip>:5555
+  adb install -r HyperHDR-v24.0.0-beta.0-AndroidTV.apk
+  ```

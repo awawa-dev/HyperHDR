@@ -1,0 +1,34 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'org.hyperhdr.androidtv'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "org.hyperhdr.androidtv"
+        minSdk 23
+        targetSdk 30
+        versionCode 24000
+        versionName "24.0.0-beta.0"
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+}

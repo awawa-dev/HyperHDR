@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="theme" format="reference" />
+    <public type="attr" name="theme" id="0x01010000" />
+    <attr name="label" format="reference|string" />
+    <public type="attr" name="label" id="0x01010001" />
+    <attr name="icon" format="reference" />
+    <public type="attr" name="icon" id="0x01010002" />
+    <attr name="name" format="string" />
+    <public type="attr" name="name" id="0x01010003" />
+    <attr name="enabled" format="boolean" />
+    <public type="attr" name="enabled" id="0x0101000e" />
+    <attr name="debuggable" format="boolean" />
+    <public type="attr" name="debuggable" id="0x0101000f" />
+    <attr name="exported" format="boolean" />
+    <public type="attr" name="exported" id="0x01010010" />
+    <attr name="launchMode" format="integer">
+        <enum name="standard" value="0" />
+        <enum name="singleTop" value="1" />
+        <enum name="singleTask" value="2" />
+        <enum name="singleInstance" value="3" />
+    </attr>
+    <public type="attr" name="launchMode" id="0x0101001d" />
+    <attr name="configChanges" format="integer">
+        <flag name="keyboard" value="0x0010" />
+        <flag name="keyboardHidden" value="0x0020" />
+        <flag name="navigation" value="0x0040" />
+        <flag name="orientation" value="0x0080" />
+        <flag name="screenLayout" value="0x0100" />
+        <flag name="uiMode" value="0x0200" />
+        <flag name="screenSize" value="0x0400" />
+        <flag name="smallestScreenSize" value="0x0800" />
+    </attr>
+    <public type="attr" name="configChanges" id="0x0101001f" />
+    <attr name="minSdkVersion" format="integer|string" />
+    <public type="attr" name="minSdkVersion" id="0x0101020c" />
+    <attr name="versionCode" format="integer" />
+    <public type="attr" name="versionCode" id="0x0101021b" />
+    <attr name="versionName" format="string" />
+    <public type="attr" name="versionName" id="0x0101021c" />
+    <attr name="targetSdkVersion" format="integer|string" />
+    <public type="attr" name="targetSdkVersion" id="0x01010270" />
+    <attr name="allowBackup" format="boolean" />
+    <public type="attr" name="allowBackup" id="0x01010280" />
+    <attr name="required" format="boolean" />
+    <public type="attr" name="required" id="0x0101028e" />
+    <attr name="supportsRtl" format="boolean" />
+    <public type="attr" name="supportsRtl" id="0x010103af" />
+    <attr name="banner" format="reference" />
+    <public type="attr" name="banner" id="0x010103f2" />
+    <attr name="usesCleartextTraffic" format="boolean" />
+    <public type="attr" name="usesCleartextTraffic" id="0x010104ec" />
+    <attr name="foregroundServiceType" format="integer">
+        <flag name="mediaProjection" value="0x00000020" />
+    </attr>
+    <public type="attr" name="foregroundServiceType" id="0x01010599" />
+    <style name="Theme.DeviceDefault.NoActionBar" parent="" />
+    <public type="style" name="Theme.DeviceDefault.NoActionBar" id="0x01030129" />
+</resources>

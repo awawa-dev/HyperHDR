@@ -1,0 +1,43 @@
+<div class="container pt-5 mt-5" style="max-width: 500px;">
+	<div class="card card-danger">				
+		<div class="card-header"><svg data-src="svg/login_user_icon.svg" fill="currentColor" class="svg4hyperhdr"></svg><span>Login</span></div>
+		<div class="card-body">
+			<form>
+				<div class="row">
+					<div class="col-12">
+						<input name="username" class="d-none" type="text" id="username" value="hyperhdr"/>
+						<input name="password" class="form-control" type="password" id="password" placeholder="Password" autocomplete="off" />
+					</div>
+					<div class="col-12 mt-1">
+						<div class="d-flex flex-row-reverse input-group w-100 mt-1 mb-1">
+							<input name="show_pw" class="form-check-input" style="margin: 0px;" type="checkbox" id="show_pw" />
+							<label id="labShowHide" for="show_pw" class="form-check-label small pe-2 d-flex align-items-center" style="display: inline;">show password:</label>						
+						</div>
+					</div>
+				</div>
+				<div class="d-flex justify-content-center mt-3 pt-3 border-top">
+					<button type="submit" class="btn btn-sm btn-success" id="btn_password" onclick="requestAuthorization(document.getElementById('password').value); return false;" disabled>
+						<svg data-src="svg/button_login.svg" fill="currentColor" class="svg4hyperhdr"></svg>Login
+					</button>
+				</div>
+			</form>
+		</div>
+			</div>
+
+</div>
+
+<script>	
+	removeOverlay();
+
+	$("#password")
+		.off()
+		.on("input", function (e) {
+			if (e.currentTarget.value.length >= 8) $("#btn_password").removeAttr("disabled");
+		});
+
+	$("#show_pw")
+		.off()
+		.on("change", function (e) {
+			e.currentTarget.checked ? $("#password").attr("type", "text") : $("#password").attr("type", "password");			
+		});
+</script>

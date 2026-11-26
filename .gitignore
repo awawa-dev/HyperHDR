@@ -36,3 +36,20 @@ tests/codec_test/build/
 CMakeSettings.json
 cmake-build-debug
 .idea
+
+# macOS & Python & Android Gradle metadata
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+__pycache__/
+*.py[cod]
+*$py.class
+.gradle/
+**/build/
+local.properties
+*.iml
+
+# Scratch, audit, and temporary package files
+.bug-hunter/
+grabber.apk
